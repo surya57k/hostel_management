@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Dashboard - Hostel Management System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="teacher_styles.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>Teacher Dashboard</h2>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" onclick="navigateTo('dashboard')">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#" class="nav-item" onclick="navigateTo('rooms')">
+                    <i class="fas fa-door-open"></i>
+                    <span>Manage Rooms</span>
+                </a>
+                <a href="#" class="nav-item" onclick="navigateTo('gate-passes')">
+                    <i class="fas fa-key"></i>
+                    <span>Gate Pass Requests</span>
+                </a>
+                <a href="#" class="nav-item" onclick="navigateTo('complaints')">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span>Complaints</span>
+                </a>
+                <a href="#" class="nav-item" onclick="navigateTo('fees')">
+                    <i class="fas fa-money-bill"></i>
+                    <span>Fee Verification</span>
+                </a>
+                <a href="#" class="nav-item" onclick="navigateTo('students')">
+                    <i class="fas fa-user-graduate"></i>
+                    <span>Student Info</span>
+                </a>
+                <a href="#" class="nav-item" onclick="navigateTo('attendance')">
+                    <i class="fas fa-clipboard-check"></i>
+                    <span>Mark Attendance</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Navigation -->
+            <header class="top-nav">
+                <button class="menu-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="user-menu">
+                    <span id="teacherName">Teacher</span>
+                    <button class="btn btn-danger" onclick="logout()">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </button>
+                </div>
+            </header>
+
+            <!-- Content Area -->
+            <div class="content-area">
+                <!-- Dashboard content will be loaded here -->
+            </div>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../auth/auth.js"></script>
+    <script src="teacher_script.js"></script>
+</body>
+</html>

@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Register for Hostel Management System - Create your account to manage your hostel experience">
+    <meta name="keywords" content="Register, Hostel Management, Account Creation">
+    <meta name="author" content="Hostel Management System Team">
+    <title>Register - Hostel Management System</title>
+    <link rel="stylesheet" href="../css/main.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" href="../images/favicon.ico" type="image/x-icon">
+    <style>
+        body {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: var(--space-4);
+            font-family: var(--font-sans);
+        }
+        
+        .form-container {
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            max-width: 500px;
+            width: 90%;
+            padding: var(--space-8);
+            position: relative;
+            overflow: hidden;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .form-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+        }
+        
+        .form-container h2 {
+            color: var(--dark);
+            font-size: var(--text-2xl);
+            margin-bottom: var(--space-6);
+            text-align: center;
+            position: relative;
+            padding-bottom: var(--space-2);
+        }
+        
+        .form-container h2::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50px;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            border-radius: 3px;
+        }
+        
+        .form-group {
+            margin-bottom: var(--space-4);
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: var(--space-2);
+            font-weight: var(--font-medium);
+            color: var(--gray-700);
+        }
+        
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: var(--space-3) var(--space-4);
+            border: 1px solid var(--gray-400);
+            border-radius: var(--radius);
+            font-size: var(--text-base);
+            transition: all var(--transition);
+        }
+        
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        }
+        
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: var(--space-4);
+        }
+        
+        .checkbox-container input {
+            margin-right: var(--space-2);
+            width: auto;
+        }
+        
+        .checkbox-container a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+        
+        .checkbox-container a:hover {
+            text-decoration: underline;
+        }
+        
+        button[type="submit"] {
+            width: 100%;
+            padding: var(--space-3) var(--space-6);
+            background-color: var(--primary);
+            color: var(--light);
+            border: none;
+            border-radius: var(--radius);
+            font-size: var(--text-base);
+            font-weight: var(--font-medium);
+            cursor: pointer;
+            transition: all var(--transition);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: var(--space-2);
+        }
+        
+        button[type="submit"]:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px rgba(59, 130, 246, 0.3);
+        }
+        
+        .form-footer {
+            margin-top: var(--space-6);
+            text-align: center;
+            color: var(--gray-600);
+        }
+        
+        .form-footer a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: var(--font-medium);
+        }
+        
+        .form-footer a:hover {
+            text-decoration: underline;
+        }
+        
+        .form-footer p {
+            margin-bottom: var(--space-2);
+        }
+        
+        .role-specific-fields {
+            display: none;
+            margin-top: var(--space-4);
+            padding-top: var(--space-4);
+            border-top: 1px dashed var(--gray-300);
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @media (max-width: 640px) {
+            .form-container {
+                padding: var(--space-6);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <h2><i class="fas fa-user-plus"></i> Create Account</h2>
+        <form id="registerForm" class="auth-form">
+            <div class="form-group">
+                <label for="name">Full Name</label>
+                <input type="text" id="name" name="name" placeholder="Enter your full name" required>
+            </div>
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" placeholder="Enter your email" required>
+            </div>
+            <div class="form-group">
+                <label for="phone">Phone Number</label>
+                <input type="tel" id="phone" name="phone" placeholder="Enter your phone number" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" placeholder="Create a password" required>
+            </div>
+            <div class="form-group">
+                <label for="role">Select Role</label>
+                <select id="role" name="role" required>
+                    <option value="">Select your role</option>
+                    <option value="student">Student</option>
+                    <option value="teacher">Teacher</option>
+                </select>
+            </div>
+            
+            <!-- Student-specific fields -->
+            <div id="studentFields" class="role-specific-fields">
+                <h3>Student Information</h3>
+                <div class="form-group">
+                    <label for="student_dept">Department</label>
+                    <input type="text" id="student_dept" name="student_dept" placeholder="Enter your department" data-required="true">
+                </div>
+                <div class="form-group">
+                    <label for="roll_no">Roll Number</label>
+                    <input type="text" id="roll_no" name="roll_no" placeholder="Enter your roll number" data-required="true">
+                </div>
+                <div class="form-group">
+                    <label for="year">Year</label>
+                    <input type="text" id="year" name="year" placeholder="Enter your year" data-required="true">
+                </div>
+                <div class="form-group">
+                    <label for="section">Section</label>
+                    <input type="text" id="section" name="section" placeholder="Enter your section" data-required="true">
+                </div>
+            </div>
+            
+            <!-- Teacher-specific fields -->
+            <div id="teacherFields" class="role-specific-fields">
+                <h3>Teacher Information</h3>
+                <div class="form-group">
+                    <label for="teacher_dept">Department</label>
+                    <input type="text" id="teacher_dept" name="teacher_dept" placeholder="Enter your department" data-required="true">
+                </div>
+                <div class="form-group">
+                    <label for="teacher_id">Teacher ID</label>
+                    <input type="text" id="teacher_id" name="teacher_id" placeholder="Enter your teacher ID" data-required="true">
+                </div>
+                <div class="form-group">
+                    <label for="post">Post</label>
+                    <input type="text" id="post" name="post" placeholder="Enter your post" data-required="true">
+                </div>
+            </div>
+            
+            <div class="checkbox-container">
+                <input type="checkbox" id="terms" required>
+                <label for="terms">I agree to the <a href="#">Terms and Conditions</a></label>
+            </div>
+            <button type="submit">Register <i class="fas fa-arrow-right"></i></button>
+        </form>
+        <div class="form-footer">
+            <p>Already have an account? <a href="login.html">Login here</a></p>
+            <p><a href="../index.html"><i class="fas fa-home"></i> Back to Home</a></p>
+        </div>
+    </div>
+
+    <script src="auth.js"></script>
+</body>
+</html>

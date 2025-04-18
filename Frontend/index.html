@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Hostel Management System - Streamline your hostel operations with our comprehensive management solution">
+    <meta name="keywords" content="Hostel Management, Student Housing, Room Booking, Hostel Administration">
+    <meta name="author" content="Hostel Management System Team">
+    <title>Hostel Management System - Home</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" href="images/favicon.ico" type="image/x-icon">
+    <style>
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: var(--light);
+            padding: var(--space-20) 0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('images/pattern.svg');
+            background-size: cover;
+            opacity: 0.1;
+        }
+        
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+            animation: fadeIn 1s ease;
+        }
+        
+        .hero h1 {
+            font-size: var(--text-5xl);
+            font-weight: var(--font-bold);
+            margin-bottom: var(--space-4);
+            color: var(--light);
+        }
+        
+        .hero p {
+            font-size: var(--text-xl);
+            margin-bottom: var(--space-8);
+            opacity: 0.9;
+        }
+        
+        .hero-buttons {
+            display: flex;
+            justify-content: center;
+            gap: var(--space-4);
+        }
+        
+        .btn-hero {
+            padding: var(--space-3) var(--space-6);
+            border-radius: var(--radius);
+            font-weight: var(--font-medium);
+            transition: all var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-2);
+        }
+        
+        .btn-hero-primary {
+            background-color: var(--light);
+            color: var(--primary);
+        }
+        
+        .btn-hero-primary:hover {
+            background-color: rgba(255, 255, 255, 0.9);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn-hero-secondary {
+            background-color: transparent;
+            color: var(--light);
+            border: 2px solid var(--light);
+        }
+        
+        .btn-hero-secondary:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            transform: translateY(-3px);
+        }
+        
+        /* Features Section */
+        .features {
+            padding: var(--space-20) 0;
+            background-color: var(--gray-100);
+        }
+        
+        .section-header {
+            text-align: center;
+            max-width: 700px;
+            margin: 0 auto var(--space-16);
+        }
+        
+        .section-title {
+            font-size: var(--text-3xl);
+            color: var(--dark);
+            margin-bottom: var(--space-4);
+            position: relative;
+            display: inline-block;
+        }
+        
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50px;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            border-radius: 3px;
+        }
+        
+        .section-subtitle {
+            font-size: var(--text-lg);
+            color: var(--gray-600);
+        }
+        
+        .feature-card {
+            background-color: var(--light);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow);
+            padding: var(--space-8);
+            height: 100%;
+            transition: all var(--transition);
+            text-align: center;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .feature-icon {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto var(--space-6);
+            color: var(--light);
+            font-size: var(--text-2xl);
+        }
+        
+        .feature-title {
+            font-size: var(--text-xl);
+            font-weight: var(--font-semibold);
+            margin-bottom: var(--space-4);
+            color: var(--dark);
+        }
+        
+        .feature-description {
+            color: var(--gray-600);
+            margin-bottom: 0;
+        }
+        
+        /* How It Works Section */
+        .how-it-works {
+            padding: var(--space-20) 0;
+        }
+        
+        .step-card {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: var(--space-8);
+        }
+        
+        .step-number {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--light);
+            font-weight: var(--font-bold);
+            font-size: var(--text-xl);
+            margin-right: var(--space-4);
+            flex-shrink: 0;
+        }
+        
+        .step-content {
+            flex: 1;
+        }
+        
+        .step-title {
+            font-size: var(--text-xl);
+            font-weight: var(--font-semibold);
+            margin-bottom: var(--space-2);
+            color: var(--dark);
+        }
+        
+        .step-description {
+            color: var(--gray-600);
+        }
+        
+        /* Testimonials Section */
+        .testimonials {
+            padding: var(--space-20) 0;
+            background-color: var(--gray-100);
+        }
+        
+        .testimonial-card {
+            background-color: var(--light);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow);
+            padding: var(--space-8);
+            height: 100%;
+            position: relative;
+        }
+        
+        .testimonial-card::before {
+            content: '"';
+            position: absolute;
+            top: var(--space-4);
+            left: var(--space-4);
+            font-size: var(--text-5xl);
+            color: var(--primary);
+            opacity: 0.2;
+            font-family: Georgia, serif;
+        }
+        
+        .testimonial-text {
+            font-style: italic;
+            color: var(--gray-700);
+            margin-bottom: var(--space-6);
+            position: relative;
+            z-index: 1;
+        }
+        
+        .testimonial-author {
+            display: flex;
+            align-items: center;
+        }
+        
+        .testimonial-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            overflow: hidden;
+            margin-right: var(--space-4);
+        }
+        
+        .testimonial-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .testimonial-info h4 {
+            font-size: var(--text-base);
+            font-weight: var(--font-semibold);
+            margin-bottom: 0;
+            color: var(--dark);
+        }
+        
+        .testimonial-info p {
+            font-size: var(--text-sm);
+            color: var(--gray-500);
+            margin-bottom: 0;
+        }
+        
+        /* CTA Section */
+        .cta {
+            padding: var(--space-20) 0;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: var(--light);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .cta::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('images/pattern.svg');
+            background-size: cover;
+            opacity: 0.1;
+        }
+        
+        .cta-content {
+            position: relative;
+            z-index: 1;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        
+        .cta h2 {
+            font-size: var(--text-3xl);
+            margin-bottom: var(--space-4);
+            color: var(--light);
+        }
+        
+        .cta p {
+            font-size: var(--text-lg);
+            margin-bottom: var(--space-8);
+            opacity: 0.9;
+        }
+        
+        .btn-cta {
+            background-color: var(--light);
+            color: var(--primary);
+            padding: var(--space-3) var(--space-8);
+            border-radius: var(--radius);
+            font-weight: var(--font-medium);
+            transition: all var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-2);
+        }
+        
+        .btn-cta:hover {
+            background-color: rgba(255, 255, 255, 0.9);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Footer */
+        .footer {
+            background-color: var(--dark);
+            color: var(--light);
+            padding: var(--space-12) 0 var(--space-8);
+        }
+        
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: var(--space-8);
+            margin-bottom: var(--space-8);
+        }
+        
+        .footer-logo {
+            font-size: var(--text-xl);
+            font-weight: var(--font-bold);
+            color: var(--light);
+            margin-bottom: var(--space-4);
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+        }
+        
+        .footer-description {
+            color: var(--gray-400);
+            margin-bottom: var(--space-4);
+        }
+        
+        .footer-social {
+            display: flex;
+            gap: var(--space-4);
+        }
+        
+        .footer-social a {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--light);
+            transition: all var(--transition);
+        }
+        
+        .footer-social a:hover {
+            background-color: var(--primary);
+            transform: translateY(-3px);
+        }
+        
+        .footer-title {
+            font-size: var(--text-lg);
+            font-weight: var(--font-semibold);
+            color: var(--light);
+            margin-bottom: var(--space-4);
+        }
+        
+        .footer-links {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .footer-links li {
+            margin-bottom: var(--space-2);
+        }
+        
+        .footer-links a {
+            color: var(--gray-400);
+            transition: color var(--transition);
+        }
+        
+        .footer-links a:hover {
+            color: var(--light);
+        }
+        
+        .footer-bottom {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: var(--space-8);
+            text-align: center;
+            color: var(--gray-500);
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: var(--text-4xl);
+            }
+            
+            .hero p {
+                font-size: var(--text-lg);
+            }
+            
+            .hero-buttons {
+                flex-direction: column;
+                gap: var(--space-3);
+            }
+            
+            .footer-content {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (max-width: 640px) {
+            .hero, .features, .how-it-works, .testimonials, .cta {
+                padding: var(--space-12) 0;
+            }
+            
+            .section-title {
+                font-size: var(--text-2xl);
+            }
+            
+            .footer-content {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .animate-delay-1 {
+            animation-delay: 0.2s;
+        }
+        
+        .animate-delay-2 {
+            animation-delay: 0.4s;
+        }
+        
+        .animate-delay-3 {
+            animation-delay: 0.6s;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="dashboard-header">
+        <div class="container">
+            <nav class="dashboard-nav">
+                <a href="index.html" class="dashboard-logo">
+                    <i class="fas fa-building"></i>
+                    <span>HMS</span>
+                </a>
+                <div class="dashboard-nav-links">
+                    <a href="#features" class="dashboard-nav-link">Features</a>
+                    <a href="#how-it-works" class="dashboard-nav-link">How It Works</a>
+                    <a href="#testimonials" class="dashboard-nav-link">Testimonials</a>
+                    <a href="auth/login.html" class="btn btn-primary">Login</a>
+                    <a href="auth/register.html" class="btn btn-outline">Register</a>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1>Streamline Your Hostel Management</h1>
+                <p>Efficiently manage room bookings, student records, and administrative tasks with our comprehensive hostel management system.</p>
+                <div class="hero-buttons">
+                    <a href="auth/register.html" class="btn-hero btn-hero-primary">
+                        <i class="fas fa-user-plus"></i>
+                        Get Started
+                    </a>
+                    <a href="#features" class="btn-hero btn-hero-secondary">
+                        <i class="fas fa-info-circle"></i>
+                        Learn More
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Powerful Features</h2>
+                <p class="section-subtitle">Everything you need to manage your hostel efficiently</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="feature-card animate-fadeIn">
+                    <div class="feature-icon">
+                        <i class="fas fa-bed"></i>
+                    </div>
+                    <h3 class="feature-title">Room Management</h3>
+                    <p class="feature-description">Easily manage room allocations, track occupancy, and handle room changes with our intuitive interface.</p>
+                </div>
+                <div class="feature-card animate-fadeIn animate-delay-1">
+                    <div class="feature-icon">
+                        <i class="fas fa-user-graduate"></i>
+                    </div>
+                    <h3 class="feature-title">Student Records</h3>
+                    <p class="feature-description">Maintain comprehensive student records, including personal information, academic details, and payment history.</p>
+                </div>
+                <div class="feature-card animate-fadeIn animate-delay-2">
+                    <div class="feature-icon">
+                        <i class="fas fa-money-bill-wave"></i>
+                    </div>
+                    <h3 class="feature-title">Payment Tracking</h3>
+                    <p class="feature-description">Track payments, generate invoices, and manage financial records with our integrated payment system.</p>
+                </div>
+                <div class="feature-card animate-fadeIn">
+                    <div class="feature-icon">
+                        <i class="fas fa-clipboard-list"></i>
+                    </div>
+                    <h3 class="feature-title">Complaint Management</h3>
+                    <p class="feature-description">Handle student complaints and maintenance requests efficiently with our streamlined complaint management system.</p>
+                </div>
+                <div class="feature-card animate-fadeIn animate-delay-1">
+                    <div class="feature-icon">
+                        <i class="fas fa-bell"></i>
+                    </div>
+                    <h3 class="feature-title">Notifications</h3>
+                    <p class="feature-description">Stay updated with real-time notifications for important events, announcements, and deadlines.</p>
+                </div>
+                <div class="feature-card animate-fadeIn animate-delay-2">
+                    <div class="feature-icon">
+                        <i class="fas fa-chart-bar"></i>
+                    </div>
+                    <h3 class="feature-title">Reports & Analytics</h3>
+                    <p class="feature-description">Generate detailed reports and analytics to gain insights into hostel operations and make data-driven decisions.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section id="how-it-works" class="how-it-works">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">How It Works</h2>
+                <p class="section-subtitle">Simple steps to get started with our hostel management system</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="step-card animate-fadeIn">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h3 class="step-title">Register Your Account</h3>
+                        <p class="step-description">Create your account by providing basic information about your hostel and administrative details.</p>
+                    </div>
+                </div>
+                <div class="step-card animate-fadeIn animate-delay-1">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h3 class="step-title">Set Up Your Hostel</h3>
+                        <p class="step-description">Configure your hostel settings, add rooms, and set up payment plans according to your requirements.</p>
+                    </div>
+                </div>
+                <div class="step-card animate-fadeIn animate-delay-2">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h3 class="step-title">Add Student Records</h3>
+                        <p class="step-description">Import or manually add student records, including personal information and room assignments.</p>
+                    </div>
+                </div>
+                <div class="step-card animate-fadeIn animate-delay-3">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <h3 class="step-title">Start Managing</h3>
+                        <p class="step-description">Begin managing your hostel operations, from room allocations to payment tracking and complaint management.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section id="testimonials" class="testimonials">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">What Our Users Say</h2>
+                <p class="section-subtitle">Hear from hostel administrators who have transformed their operations</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="testimonial-card animate-fadeIn">
+                    <p class="testimonial-text">This system has completely transformed how we manage our hostel. The room allocation feature alone has saved us countless hours of work.</p>
+                    <div class="testimonial-author">
+                        <div class="testimonial-avatar">
+                            <img src="https://randomuser.me/api/portraits/women/32.jpg" alt="Sarah Johnson">
+                        </div>
+                        <div class="testimonial-info">
+                            <h4>Sarah Johnson</h4>
+                            <p>Hostel Warden, University of Technology</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-card animate-fadeIn animate-delay-1">
+                    <p class="testimonial-text">The payment tracking system is a game-changer. We've reduced late payments by 75% since implementing this software.</p>
+                    <div class="testimonial-author">
+                        <div class="testimonial-avatar">
+                            <img src="https://randomuser.me/api/portraits/men/45.jpg" alt="Michael Chen">
+                        </div>
+                        <div class="testimonial-info">
+                            <h4>Michael Chen</h4>
+                            <p>Administrative Director, City College</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-card animate-fadeIn animate-delay-2">
+                    <p class="testimonial-text">The complaint management feature has improved student satisfaction significantly. Students feel heard and issues are resolved faster.</p>
+                    <div class="testimonial-author">
+                        <div class="testimonial-avatar">
+                            <img src="https://randomuser.me/api/portraits/women/68.jpg" alt="Priya Patel">
+                        </div>
+                        <div class="testimonial-info">
+                            <h4>Priya Patel</h4>
+                            <p>Residence Manager, International University</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta">
+        <div class="container">
+            <div class="cta-content">
+                <h2>Ready to Transform Your Hostel Management?</h2>
+                <p>Join thousands of hostel administrators who have streamlined their operations with our system.</p>
+                <a href="auth/register.html" class="btn-cta">
+                    <i class="fas fa-rocket"></i>
+                    Get Started Now
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div>
+                    <a href="index.html" class="footer-logo">
+                        <i class="fas fa-building"></i>
+                        <span>HMS</span>
+                    </a>
+                    <p class="footer-description">A comprehensive hostel management system designed to streamline operations and improve efficiency.</p>
+                    <div class="footer-social">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="footer-title">Quick Links</h3>
+                    <ul class="footer-links">
+                        <li><a href="#features">Features</a></li>
+                        <li><a href="#how-it-works">How It Works</a></li>
+                        <li><a href="#testimonials">Testimonials</a></li>
+                        <li><a href="auth/login.html">Login</a></li>
+                        <li><a href="auth/register.html">Register</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="footer-title">Resources</h3>
+                    <ul class="footer-links">
+                        <li><a href="#">Documentation</a></li>
+                        <li><a href="#">API Reference</a></li>
+                        <li><a href="#">Support</a></li>
+                        <li><a href="#">Blog</a></li>
+                        <li><a href="#">FAQ</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="footer-title">Contact Us</h3>
+                    <ul class="footer-links">
+                        <li><i class="fas fa-map-marker-alt"></i> 123 University Ave, City</li>
+                        <li><i class="fas fa-phone"></i> +1 (555) 123-4567</li>
+                        <li><i class="fas fa-envelope"></i> info@hostelmanagement.com</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2023 Hostel Management System. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+        
+        // Add active class to nav links on scroll
+        window.addEventListener('scroll', function() {
+            const sections = document.querySelectorAll('section');
+            const navLinks = document.querySelectorAll('.dashboard-nav-link');
+            
+            let current = '';
+            
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                const sectionHeight = section.clientHeight;
+                
+                if (pageYOffset >= sectionTop - 60) {
+                    current = section.getAttribute('id');
+                }
+            });
+            
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === `#${current}`) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+    </script>
+</body>
+</html>
+    </script>
+</body>
+</html>
