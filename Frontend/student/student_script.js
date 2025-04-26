@@ -16,8 +16,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             if (response.status === 401) {
                 alert('Session expired. Redirecting to login page.');
-                localStorage.removeItem('token');
-                window.location.href = '../auth/login.html';
+                logout();
                 return;
             }
 
@@ -49,6 +48,44 @@ document.addEventListener("DOMContentLoaded", function () {
             console.error(`API Error (${endpoint}):`, error);
             throw error;
         }
+    }
+
+    // Logout function
+    window.logout = function() {
+        // Clear all local storage data
+        localStorage.removeItem('token');
+        localStorage.removeItem('userData');
+        
+        // Show logout message
+        showNotification('Logging out...', 'info');
+        
+        // Redirect to login page after a short delay
+        setTimeout(() => {
+            window.location.href = '../auth/login.html';
+        }, 1000);
+    };
+
+    // Show notification function
+    function showNotification(message, type = 'info') {
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        notification.textContent = message;
+        
+        document.body.appendChild(notification);
+        
+        // Remove notification after 3 seconds
+        setTimeout(() => {
+            notification.remove();
+        }, 3000);
+    }
+
+    // Add event listener for logout button
+    const logoutButton = document.getElementById('logoutButton');
+    if (logoutButton) {
+        logoutButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            logout();
+        });
     }
 
     // Fetch user data from backend

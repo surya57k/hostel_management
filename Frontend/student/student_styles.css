@@ -143,11 +143,13 @@ body {
     border-radius: var(--border-radius);
     box-shadow: var(--shadow-md);
     padding: 0.5rem;
-    display: none;
     min-width: 200px;
+    z-index: 1000;
+    display: none;
 }
 
-.user-menu:hover .dropdown-menu {
+.user-menu:hover .dropdown-menu,
+.dropdown-menu:focus-within {
     display: block;
 }
 
@@ -168,11 +170,11 @@ body {
     color: var(--primary-color);
 }
 
-.logout-btn {
+.logout-button {
     color: var(--danger-color);
 }
 
-.logout-btn:hover {
+.logout-button:hover {
     background: #fee2e2;
 }
 
@@ -767,4 +769,44 @@ button:hover {
 .roommates h4 {
     color: #616161;
     margin-bottom: 10px;
+}
+
+/* Notification Styles */
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 1rem 2rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-md);
+    color: white;
+    z-index: 1000;
+    animation: slideIn 0.3s ease-out;
+}
+
+.notification.info {
+    background-color: var(--primary-color);
+}
+
+.notification.success {
+    background-color: #10b981;
+}
+
+.notification.error {
+    background-color: #ef4444;
+}
+
+.notification.warning {
+    background-color: #f59e0b;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
 }
