@@ -1,24 +1,41 @@
-# Node.js dependencies
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Node.js
 node_modules/
 npm-debug.log
 yarn-error.log
+package-lock.json
+
+# Database
+*.sql
+*.sqlite
+*.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
 
 # Logs
 logs/
 *.log
 
-# Environment files
-.env
-.env.local
-.env.*.local
+# Build
+dist/
+build/
+*.min.js
+*.min.css
 
-# Database files
-*.sql
-
-# IDE-specific files
-.vscode/
-.idea/
-
-# OS-specific files
-.DS_Store
-Thumbs.db
+# Temporary files
+*.tmp
+*.temp
+*.bak

@@ -112,31 +112,56 @@ document.addEventListener("DOMContentLoaded", function () {
             ]);
 
             // Update student name
-            document.getElementById("studentName").innerText = profile?.name || "Student";
+            const studentNameElement = document.getElementById("studentName");
+            if (studentNameElement) {
+                studentNameElement.innerText = profile?.name || "Student";
+            }
 
             // Update attendance percentage
-            const attendancePercentage = attendance?.statistics?.attendance_percentage || 0;
-            document.getElementById("attendancePercentage").innerText = `${attendancePercentage}%`;
+            const attendancePercentageElement = document.getElementById("attendancePercentage");
+            if (attendancePercentageElement) {
+                const attendancePercentage = attendance?.statistics?.attendance_percentage || 0;
+                attendancePercentageElement.innerText = `${attendancePercentage}%`;
+            }
 
             // Update fees due
-            const pendingFees = feeStatus?.summary?.total_pending || 0;
-            document.getElementById("feesDue").innerText = `₹${pendingFees.toLocaleString()}`;
+            const feesDueElement = document.getElementById("feesDue");
+            if (feesDueElement) {
+                const pendingFees = feeStatus?.summary?.total_pending || 0;
+                feesDueElement.innerText = `₹${pendingFees.toLocaleString()}`;
+            }
 
             // Update active gate passes
-            const activeGatePasses = await fetchWithAuth('/student/gate-passes');
-            const activePasses = activeGatePasses.filter(pass => 
-                pass.status === 'approved' && new Date(pass.expected_return_date) >= new Date()
-            ).length;
-            document.getElementById("activePasses").innerText = `${activePasses} Active`;
+            const activePassesElement = document.getElementById("activePasses");
+            if (activePassesElement) {
+                try {
+                    const activeGatePasses = await fetchWithAuth('/student/gate-passes');
+                    const activePasses = activeGatePasses.filter(pass => 
+                        pass.status === 'approved' && new Date(pass.expected_return_date) >= new Date()
+                    ).length;
+                    activePassesElement.innerText = `${activePasses} Active`;
+                } catch (error) {
+                    console.error('Error fetching gate passes:', error);
+                    activePassesElement.innerText = '0 Active';
+                }
+            }
 
             // Update pending complaints
-            const complaints = await fetchWithAuth('/student/complaints');
-            const pendingComplaints = complaints.filter(c => c.status === 'pending').length;
-            document.getElementById("pendingComplaints").innerText = pendingComplaints.toString();
+            const pendingComplaintsElement = document.getElementById("pendingComplaints");
+            if (pendingComplaintsElement) {
+                try {
+                    const complaints = await fetchWithAuth('/student/complaints');
+                    const pendingComplaints = complaints.filter(c => c.status === 'pending').length;
+                    pendingComplaintsElement.innerText = pendingComplaints.toString();
+                } catch (error) {
+                    console.error('Error fetching complaints:', error);
+                    pendingComplaintsElement.innerText = '0';
+                }
+            }
 
         } catch (error) {
             console.error('Error initializing dashboard:', error);
-            showError('Failed to load dashboard data. Please refresh the page.');
+            showError('Failed to load dashboard data. Please check your internet connection and try again.');
         }
     }
 
@@ -241,6 +266,11 @@ document.addEventListener("DOMContentLoaded", function () {
                 return;
             }
 
+            // Check if response is valid
+            if (!response || !response.room_number) {
+                throw new Error('Invalid room data received');
+            }
+
             // Response is the room data directly
             document.getElementById("content").innerHTML = `
                 <div class="room-section">
@@ -248,10 +278,10 @@ document.addEventListener("DOMContentLoaded", function () {
                     <div class="room-info">
                         <div class="room-card">
                             <h3>Room ${response.room_number}</h3>
-                            <p><strong>Block:</strong> ${response.block}</p>
-                            <p><strong>Floor:</strong> ${response.floor}</p>
-                            <p><strong>Type:</strong> ${response.room_type}</p>
-                            <p><strong>Allocation Date:</strong> ${new Date(response.allocated_date).toLocaleDateString()}</p>
+                            <p><strong>Block:</strong> ${response.block || 'N/A'}</p>
+                            <p><strong>Floor:</strong> ${response.floor || 'N/A'}</p>
+                            <p><strong>Type:</strong> ${response.room_type || 'N/A'}</p>
+                            <p><strong>Allocation Date:</strong> ${response.allocated_date ? new Date(response.allocated_date).toLocaleDateString() : 'N/A'}</p>
                             ${response.roommates ? `
                                 <div class="roommates">
                                     <h4>Roommates:</h4>
@@ -270,6 +300,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         <i class="fas fa-exclamation-circle"></i>
                         <p>Failed to load room details. Please try again later.</p>
                         <p>If the problem persists, contact the administrator.</p>
+                        <p class="error-details">Error: ${error.message}</p>
                     </div>
                 </div>
             `;
