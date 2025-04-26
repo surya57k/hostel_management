@@ -4,9 +4,9 @@ const path = require('path');
 
 async function initializeDatabase() {
     const connection = await mysql.createConnection({
-        host: 'localhost',
-        user: 'root',
-        password: 'Surya@1234',
+        host: process.env.DB_HOST || 'localhost',
+        user: process.env.DB_USER || 'root',
+        password: process.env.DB_PASSWORD, // Use environment variable
         multipleStatements: true
     });
 
@@ -77,4 +77,4 @@ initializeDatabase()
     .catch((error) => {
         console.error('Failed to setup database:', error);
         process.exit(1);
-    }); 
+    });
