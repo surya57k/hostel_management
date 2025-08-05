@@ -191,12 +191,27 @@ router.post('/complaints', auth, async (req, res) => {
 // Complaints endpoints
 router.get('/complaints', auth, async (req, res) => {
     try {
-        const [complaints] = await db.execute(
-            'SELECT * FROM complaints WHERE user_id = ?',
+        const [studentRows] = await db.execute(
+            'SELECT id FROM students WHERE user_id = ?',
             [req.user.id]
         );
-        res.json(complaints);
+
+        if (studentRows.length === 0) {
+            return res.json({ complaints: [] });
+        }
+
+        const [complaints] = await db.execute(`
+            SELECT c.*, r.room_number, r.block
+            FROM complaints c
+            JOIN rooms r ON c.room_id = r.id
+            WHERE c.student_id = ?
+            ORDER BY c.created_at DESC`,
+            [studentRows[0].id]
+        );
+
+        res.json({ complaints: complaints || [] });
     } catch (error) {
+        console.error('Error:', error);
         res.status(500).json({ error: 'Failed to fetch complaints' });
     }
 });
@@ -204,43 +219,52 @@ router.get('/complaints', auth, async (req, res) => {
 // Add endpoint to fetch allocated room details
 router.get('/allocated-room', auth, async (req, res) => {
     try {
-        // First get the student ID
         const [studentRows] = await db.execute(
-            'SELECT id FROM students WHERE user_id = ?',
+            'SELECT id FROM students WHERE user_id = ?', 
             [req.user.id]
         );
 
         if (studentRows.length === 0) {
-            return res.status(404).json({ error: 'Student record not found' });
+            return res.status(404).json({ error: 'No room allocated' });
         }
 
         const studentId = studentRows[0].id;
 
-        // Get room details with all necessary information
-        const [rooms] = await db.execute(`
-            SELECT r.room_number, r.block, r.floor, r.room_type, r.capacity,
-                   ra.allocated_date, ra.status as allocation_status,
-                   GROUP_CONCAT(DISTINCT u.name) as roommates
-            FROM room_allocations ra
-            JOIN rooms r ON ra.room_id = r.room_id
-            LEFT JOIN room_allocations ra2 ON r.room_id = ra2.room_id 
-                AND ra2.status = 'active' 
-                AND ra2.student_id != ?
-            LEFT JOIN students s ON ra2.student_id = s.id
-            LEFT JOIN users u ON s.user_id = u.id
-            WHERE ra.student_id = ? AND ra.status = 'active'
-            GROUP BY r.room_id`,
+        // Simplified query to avoid GROUP BY issues
+        const [roomDetails] = await db.execute(`
+            SELECT DISTINCT 
+                r.room_number, 
+                r.block, 
+                r.floor, 
+                r.type, 
+                r.capacity,
+                ra.allocated_date,
+                ra.status as allocation_status,
+                (
+                    SELECT GROUP_CONCAT(DISTINCT u2.name)
+                    FROM room_allocations ra2
+                    JOIN students s2 ON ra2.student_id = s2.id
+                    JOIN users u2 ON s2.user_id = u2.id
+                    WHERE ra2.room_id = r.id 
+                    AND ra2.status = 'active'
+                    AND ra2.student_id != ?
+                ) as roommates
+            FROM students s
+            LEFT JOIN room_allocations ra ON s.id = ra.student_id 
+            LEFT JOIN rooms r ON ra.room_id = r.id
+            WHERE s.id = ? 
+            AND ra.status = 'active'`,
             [studentId, studentId]
         );
 
-        if (rooms.length === 0) {
+        if (!roomDetails || roomDetails.length === 0) {
             return res.status(404).json({ error: 'No room allocated' });
         }
 
-        res.json(rooms[0]);
+        res.json(roomDetails[0]);
     } catch (error) {
-        console.error('Error fetching allocated room:', error);
-        res.status(500).json({ error: 'Failed to fetch allocated room details' });
+        console.error('Error:', error);
+        res.status(500).json({ error: 'Failed to fetch room details' });
     }
 });
 
@@ -435,6 +459,67 @@ router.get('/fee-status', auth, async (req, res) => {
     } catch (error) {
         console.error('Error fetching fee status:', error);
         res.status(500).json({ error: 'Failed to fetch fee status' });
+    }
+});
+
+// Add new room details endpoint
+router.get('/room-details', auth, async (req, res) => {
+    try {
+        // Get student ID
+        const [studentRows] = await db.execute(
+            'SELECT id FROM students WHERE user_id = ?',
+            [req.user.id]
+        );
+
+        if (studentRows.length === 0) {
+            return res.status(404).json({ error: 'Student record not found' });
+        }
+
+        const studentId = studentRows[0].id;
+
+        // Get room details with roommates - fixed GROUP BY issue
+        const [roomDetails] = await db.execute(`
+            SELECT 
+                r.id,
+                r.room_number,
+                r.block,
+                r.floor,
+                r.type as room_type,
+                r.capacity,
+                r.available_slots,
+                MAX(ra.allocated_date) as allocated_date,
+                (
+                    SELECT GROUP_CONCAT(DISTINCT u2.name)
+                    FROM room_allocations ra2
+                    JOIN students s2 ON ra2.student_id = s2.id
+                    JOIN users u2 ON s2.user_id = u2.id
+                    WHERE ra2.room_id = r.id 
+                    AND ra2.status = 'active'
+                    AND s2.id != ?
+                ) as roommates
+            FROM students s
+            JOIN room_allocations ra ON s.id = ra.student_id
+            JOIN rooms r ON ra.room_id = r.id
+            WHERE s.id = ? 
+            AND ra.status = 'active'
+            GROUP BY r.id, r.room_number, r.block, r.floor, r.type, r.capacity, r.available_slots`,
+            [studentId, studentId]
+        );
+
+        if (!roomDetails || roomDetails.length === 0) {
+            return res.status(404).json({ error: 'No room allocated' });
+        }
+
+        // Format the roommates string or set to empty array if null
+        const formattedResponse = {
+            ...roomDetails[0],
+            roommates: roomDetails[0].roommates ? roomDetails[0].roommates.split(',') : []
+        };
+
+        res.json(formattedResponse);
+    } catch (error) {
+        console.error('Error:', error);
+        res.status(500).json({ error: 'Failed to fetch room details' });
     }
 });
 

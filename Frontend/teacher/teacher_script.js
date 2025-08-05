@@ -4,8 +4,8 @@ document.addEventListener("DOMContentLoaded", function () {
     // Mock data for development when API endpoints are not available
     const MOCK_DATA = {
         profile: {
-            name: "John Doe",
-            email: "john.doe@example.com",
+            name: "Teacher",
+            email: "teacher@example.com",
             phone: "1234567890",
             department: "Computer Science"
         },

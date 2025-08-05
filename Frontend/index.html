@@ -213,68 +213,124 @@
         
         /* Testimonials Section */
         .testimonials {
-            padding: var(--space-20) 0;
-            background-color: var(--gray-100);
+            padding: var(--space-5) 0;
+            background: linear-gradient(135deg, #f6f9fc 0%, #edf2f7 100%);
         }
         
         .testimonial-card {
-            background-color: var(--light);
+            background: rgba(255, 255, 255, 0.9);
             border-radius: var(--radius-lg);
-            box-shadow: var(--shadow);
-            padding: var(--space-8);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: var(--space-4);
             height: 100%;
             position: relative;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            overflow: hidden;
+        }
+        
+        .testimonial-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--primary);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
         }
         
         .testimonial-card::before {
-            content: '"';
+            content: '';
             position: absolute;
-            top: var(--space-4);
-            left: var(--space-4);
-            font-size: var(--text-5xl);
-            color: var(--primary);
-            opacity: 0.2;
-            font-family: Georgia, serif;
-        }
-        
-        .testimonial-text {
-            font-style: italic;
-            color: var(--gray-700);
-            margin-bottom: var(--space-6);
-            position: relative;
-            z-index: 1;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, rgba(var(--primary-rgb), 0.05), rgba(var(--secondary-rgb), 0.05));
+            z-index: 0;
         }
         
         .testimonial-author {
+            position: relative;
+            z-index: 1;
             display: flex;
-            align-items: center;
+            align-items: flex-start;
+            padding: var(--space-4);
+            background: linear-gradient(135deg, rgba(var(--primary-rgb), 0.1), rgba(var(--secondary-rgb), 0.1));
+            border-radius: var(--radius-lg);
+            margin-bottom: var(--space-4);
+            flex-wrap: wrap;
+            gap: var(--space-4);
         }
         
         .testimonial-avatar {
-            width: 50px;
-            height: 50px;
+            width: 100px;
+            height: 100px;
             border-radius: 50%;
             overflow: hidden;
             margin-right: var(--space-4);
+            border: 4px solid #fff;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            flex-shrink: 0;
+            background: #f0f0f0;
+            position: relative;
         }
         
         .testimonial-avatar img {
             width: 100%;
             height: 100%;
             object-fit: cover;
+            object-position: center;
+            display: block;
+        }
+        
+        .testimonial-info {
+            flex: 1;
+            min-width: 200px;
         }
         
         .testimonial-info h4 {
-            font-size: var(--text-base);
-            font-weight: var(--font-semibold);
-            margin-bottom: 0;
-            color: var(--dark);
+            font-size: var(--text-lg);
+            font-weight: var(--font-bold);
+            color: var(--primary);
+            margin-bottom: var(--space-2);
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
         
         .testimonial-info p {
             font-size: var(--text-sm);
-            color: var(--gray-500);
-            margin-bottom: 0;
+            color: var(--gray-600);
+            margin-bottom: var(--space-1);
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+        }
+        
+        .testimonial-info p i {
+            color: var(--primary);
+            font-size: 1.1em;
+        }
+        
+        /* Add rainbow border animation */
+        @keyframes borderAnimation {
+            0% { border-color: #ff6b6b; }
+            25% { border-color: #4ecdc4; }
+            50% { border-color: #45b7d1; }
+            75% { border-color: #96c93d; }
+            100% { border-color: #ff6b6b; }
+        }
+        
+        .testimonial-card:hover {
+            animation: borderAnimation 4s linear infinite;
+        }
+        
+        /* Add hover effects for contact icons */
+        .testimonial-info p i {
+            transition: transform 0.3s ease, color 0.3s ease;
+        }
+        
+        .testimonial-info p:hover i {
+            transform: scale(1.2);
+            color: var(--secondary);
         }
         
         /* CTA Section */
@@ -353,7 +409,7 @@
         .footer-logo {
             font-size: var(--text-xl);
             font-weight: var(--font-bold);
-            color: var(--light);
+            color: var (--light);
             margin-bottom: var(--space-4);
             display: flex;
             align-items: center;
@@ -451,6 +507,19 @@
             
             .footer-content {
                 grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .testimonial-author {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+            
+            .testimonial-avatar {
+                margin-right: 0;
+                margin-bottom: var(--space-4);
             }
         }
         
@@ -622,38 +691,86 @@
             </div>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div class="testimonial-card animate-fadeIn">
-                    <p class="testimonial-text">This system has completely transformed how we manage our hostel. The room allocation feature alone has saved us countless hours of work.</p>
                     <div class="testimonial-author">
                         <div class="testimonial-avatar">
-                            <img src="https://randomuser.me/api/portraits/women/32.jpg" alt="Sarah Johnson">
+                            <img src="images/team/member1.jpg" alt="Image">
                         </div>
                         <div class="testimonial-info">
-                            <h4>Sarah Johnson</h4>
-                            <p>Hostel Warden, University of Technology</p>
+                            <h4>J Dinesh</h4>
+                            <p>Idea and Design</p>
+                            <p><i class="fas fa-phone"></i> +918074942041</p>
+                            <p><i class="fas fa-envelope"></i> 238w1a0586@vrsec.ac.in</p>
+                            <p><i class="fas fa-map-marker-alt"></i> Vijayawada</p>
                         </div>
                     </div>
                 </div>
                 <div class="testimonial-card animate-fadeIn animate-delay-1">
-                    <p class="testimonial-text">The payment tracking system is a game-changer. We've reduced late payments by 75% since implementing this software.</p>
                     <div class="testimonial-author">
                         <div class="testimonial-avatar">
-                            <img src="https://randomuser.me/api/portraits/men/45.jpg" alt="Michael Chen">
+                            <img src="images/team/member2.jpg" alt="Image">
                         </div>
                         <div class="testimonial-info">
-                            <h4>Michael Chen</h4>
-                            <p>Administrative Director, City College</p>
+                            <h4>Ch Reshma Chowdary</h4>
+                            <p>Frontend Developer and Database Administrator</p>
+                            <p><i class="fas fa-phone"></i> +918688481613</p>
+                            <p><i class="fas fa-envelope"></i> 238w1a0575@vrsec.ac.in</p>
+                            <p><i class="fas fa-map-marker-alt"></i> Vijayawada</p>
                         </div>
                     </div>
                 </div>
                 <div class="testimonial-card animate-fadeIn animate-delay-2">
-                    <p class="testimonial-text">The complaint management feature has improved student satisfaction significantly. Students feel heard and issues are resolved faster.</p>
                     <div class="testimonial-author">
                         <div class="testimonial-avatar">
-                            <img src="https://randomuser.me/api/portraits/women/68.jpg" alt="Priya Patel">
+                            <img src="images/team/member3.jpg" alt="Image">
                         </div>
                         <div class="testimonial-info">
-                            <h4>Priya Patel</h4>
-                            <p>Residence Manager, International University</p>
+                            <h4>M Hemasri</h4>
+                            <p>Frontend Developer and UI/UX Developer</p>
+                            <p><i class="fas fa-phone"></i> +9163054883758</p>
+                            <p><i class="fas fa-envelope"></i> 238w1a0595@vrsec.ac.in</p>
+                            <p><i class="fas fa-map-marker-alt"></i> Vijayawada</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-card animate-fadeIn">
+                    <div class="testimonial-author">
+                        <div class="testimonial-avatar">
+                            <img src="images/team/member4.jpg" alt="Image">
+                        </div>
+                        <div class="testimonial-info">
+                            <h4>Ch Surya Vardhan</h4>
+                            <p>Backend Developer and Server side Integration</p>
+                            <p><i class="fas fa-phone"></i> +919392894852</p>
+                            <p><i class="fas fa-envelope"></i> 238w1a0576@vrsec.ac.in</p>
+                            <p><i class="fas fa-map-marker-alt"></i> Vijayawada</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-card animate-fadeIn animate-delay-1">
+                    <div class="testimonial-author">
+                        <div class="testimonial-avatar">
+                            <img src="images/team/member5.jpg" alt="Image">
+                        </div>
+                        <div class="testimonial-info">
+                            <h4>Sk Muskan</h4>
+                            <p>Backend Developer and UI/UX Developer</p>
+                            <p><i class="fas fa-phone"></i> +918919570012</p>
+                            <p><i class="fas fa-envelope"></i> 238w1a05b3@vrsec.ac.in</p>
+                            <p><i class="fas fa-map-marker-alt"></i> Vijayawada</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-card animate-fadeIn animate-delay-2">
+                    <div class="testimonial-author">
+                        <div class="testimonial-avatar">
+                            <img src="images/team/member6.jpg" alt="Image">
+                        </div>
+                        <div class="testimonial-info">
+                            <h4>G Venkata Sri MOulika</h4>
+                            <p>Testing and Project Management</p>
+                            <p><i class="fas fa-phone"></i> +918978532661</p>
+                            <p><i class="fas fa-envelope"></i> 238w1a0583@vrsec.ac.in</p>
+                            <p><i class="fas fa-map-marker-alt"></i> Vijayawada</p>
                         </div>
                     </div>
                 </div>
@@ -715,14 +832,14 @@
                 <div>
                     <h3 class="footer-title">Contact Us</h3>
                     <ul class="footer-links">
-                        <li><i class="fas fa-map-marker-alt"></i> 123 University Ave, City</li>
-                        <li><i class="fas fa-phone"></i> +1 (555) 123-4567</li>
-                        <li><i class="fas fa-envelope"></i> info@hostelmanagement.com</li>
+                        <li><i class="fas fa-map-marker-alt"></i> VR Siddhartha Engineering College, Vijayawada</li>
+                        <li><i class="fas fa-phone"></i> 0866 258 2334</li>
+                        <li><i class="fas fa-envelope"></i> sahe@vrsec.ac.in</li>
                     </ul>
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; 2023 Hostel Management System. All rights reserved.</p>
+                <p>&copy; 2025 Hostel Management System. All rights reserved.</p>
             </div>
         </div>
     </footer>
@@ -762,12 +879,6 @@
                 }
             });
         });
-    </script>
-</body>
-</html>
-    </script>
-</body>
-</html>
     </script>
 </body>
 </html>

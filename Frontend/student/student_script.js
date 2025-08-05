@@ -102,66 +102,28 @@ document.addEventListener("DOMContentLoaded", function () {
     // Initialize dashboard data
     async function initializeDashboard() {
         try {
-            // Fetch all necessary data for the dashboard
-            const [profile, feeStatus, attendance, announcements, roomDetails] = await Promise.all([
-                fetchWithAuth('/student/profile'),
-                fetchWithAuth('/student/fee-status'),
-                fetchWithAuth('/student/attendance'),
-                fetchWithAuth('/student/announcements'),
-                fetchWithAuth('/student/allocated-room')
-            ]);
+            const complaintsResponse = await fetchWithAuth('/student/complaints');
+            const roomResponse = await fetchWithAuth('/student/room-details');
 
-            // Update student name
-            const studentNameElement = document.getElementById("studentName");
-            if (studentNameElement) {
-                studentNameElement.innerText = profile?.name || "Student";
-            }
-
-            // Update attendance percentage
-            const attendancePercentageElement = document.getElementById("attendancePercentage");
-            if (attendancePercentageElement) {
-                const attendancePercentage = attendance?.statistics?.attendance_percentage || 0;
-                attendancePercentageElement.innerText = `${attendancePercentage}%`;
-            }
-
-            // Update fees due
-            const feesDueElement = document.getElementById("feesDue");
-            if (feesDueElement) {
-                const pendingFees = feeStatus?.summary?.total_pending || 0;
-                feesDueElement.innerText = `₹${pendingFees.toLocaleString()}`;
-            }
-
-            // Update active gate passes
-            const activePassesElement = document.getElementById("activePasses");
-            if (activePassesElement) {
-                try {
-                    const activeGatePasses = await fetchWithAuth('/student/gate-passes');
-                    const activePasses = activeGatePasses.filter(pass => 
-                        pass.status === 'approved' && new Date(pass.expected_return_date) >= new Date()
-                    ).length;
-                    activePassesElement.innerText = `${activePasses} Active`;
-                } catch (error) {
-                    console.error('Error fetching gate passes:', error);
-                    activePassesElement.innerText = '0 Active';
-                }
-            }
-
-            // Update pending complaints
+            // Update complaints counter
             const pendingComplaintsElement = document.getElementById("pendingComplaints");
             if (pendingComplaintsElement) {
-                try {
-                    const complaints = await fetchWithAuth('/student/complaints');
-                    const pendingComplaints = complaints.filter(c => c.status === 'pending').length;
-                    pendingComplaintsElement.innerText = pendingComplaints.toString();
-                } catch (error) {
-                    console.error('Error fetching complaints:', error);
-                    pendingComplaintsElement.innerText = '0';
-                }
+                const complaints = complaintsResponse?.complaints || [];
+                const pendingCount = complaints.filter(c => c.status === 'pending').length || 0;
+                pendingComplaintsElement.innerText = pendingCount;
+            }
+
+            // Update room info
+            const roomInfoElement = document.getElementById("roomInfo");
+            if (roomInfoElement && roomResponse && !roomResponse.error) {
+                roomInfoElement.innerText = `${roomResponse.block}-${roomResponse.room_number}`;
+            } else if (roomInfoElement) {
+                roomInfoElement.innerText = 'Not Allocated';
             }
 
         } catch (error) {
             console.error('Error initializing dashboard:', error);
-            showError('Failed to load dashboard data. Please check your internet connection and try again.');
+            showError('Failed to load dashboard data');
         }
     }
 
@@ -176,12 +138,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Show error message
     function showError(message) {
-        document.getElementById("content").innerHTML = `
-            <div class="error-message">
-                <i class="fas fa-exclamation-circle"></i>
-                <p>${message}</p>
-            </div>
-        `;
+        const errorElement = document.createElement('div');
+        errorElement.className = 'alert alert-danger';
+        errorElement.innerText = message;
+        document.body.insertBefore(errorElement, document.body.firstChild);
+        setTimeout(() => errorElement.remove(), 5000);
     }
 
     // Show success message
@@ -250,7 +211,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // View room details
     window.viewRoomDetails = async function() {
         try {
-            const response = await fetchWithAuth('/student/allocated-room');
+            const response = await fetchWithAuth('/student/room-details');
             
             // If there's an error property, it means no room is allocated
             if (response.error) {

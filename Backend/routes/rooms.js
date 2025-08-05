@@ -11,9 +11,9 @@ router.get('/available', auth, async (req, res) => {
                    (r.capacity - r.available_slots) as occupied_slots,
                    COUNT(DISTINCT ra.student_id) as current_occupants
             FROM rooms r
-            LEFT JOIN room_allocations ra ON r.room_id = ra.room_id AND ra.status = 'active'
+            LEFT JOIN room_allocations ra ON r.id = ra.room_id AND ra.status = 'active'
             WHERE r.available_slots > 0
-            GROUP BY r.room_id
+            GROUP BY r.id, r.room_number, r.block, r.floor, r.type, r.capacity, r.status
         `);
         res.json(rooms);
     } catch (error) {
@@ -29,11 +29,11 @@ router.get('/:roomId', auth, async (req, res) => {
             SELECT r.*, 
                    GROUP_CONCAT(DISTINCT u.name) as occupant_names
             FROM rooms r
-            LEFT JOIN room_allocations ra ON r.room_id = ra.room_id AND ra.status = 'active'
+            LEFT JOIN room_allocations ra ON r.id = ra.room_id AND ra.status = 'active'
             LEFT JOIN students s ON ra.student_id = s.id
             LEFT JOIN users u ON s.user_id = u.id
-            WHERE r.room_id = ?
-            GROUP BY r.room_id`,
+            WHERE r.id = ?
+            GROUP BY r.id, r.room_number, r.block, r.floor, r.type, r.capacity, r.status`,
             [req.params.roomId]
         );
 
@@ -65,7 +65,7 @@ router.post('/allocate', auth, async (req, res) => {
 
         // Check if room has available slots
         const [roomCheck] = await db.execute(
-            'SELECT available_slots FROM rooms WHERE room_id = ?',
+            'SELECT available_slots FROM rooms WHERE id = ?',
             [room_id]
         );
 
@@ -94,7 +94,7 @@ router.post('/allocate', auth, async (req, res) => {
 
         // Update available slots
         await db.execute(
-            'UPDATE rooms SET available_slots = available_slots - 1 WHERE room_id = ?',
+            'UPDATE rooms SET available_slots = available_slots - 1 WHERE id = ?',
             [room_id]
         );
 
@@ -144,7 +144,7 @@ router.post('/deallocate', auth, async (req, res) => {
 
         // Update available slots
         await db.execute(
-            'UPDATE rooms SET available_slots = available_slots + 1 WHERE room_id = ?',
+            'UPDATE rooms SET available_slots = available_slots + 1 WHERE id = ?',
             [allocation[0].room_id]
         );
 
