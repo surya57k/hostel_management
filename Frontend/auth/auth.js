@@ -74,7 +74,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const userData = Object.fromEntries(formData.entries());
 
             try {
-                const response = await fetch("http://localhost:5000/register", {
+                const response = await fetch("http://localhost:5000/api/auth/register", {
                     method: "POST",
                     headers: { 
                         "Content-Type": "application/json",
@@ -105,7 +105,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // Add API base URL configuration
-    const API_BASE_URL = 'http://localhost:5000';
+    const API_BASE_URL = 'http://localhost:5000/api/auth';
 
     // Add authentication header helper
     const getAuthHeader = () => {
@@ -189,7 +189,7 @@ document.addEventListener("DOMContentLoaded", function () {
             submitButton.textContent = "Logging in...";
 
             try {
-                const data = await fetchWithRetry(`${API_BASE_URL}/login`, {
+                const response = await fetch(`${API_BASE_URL}/login`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
@@ -197,6 +197,17 @@ document.addEventListener("DOMContentLoaded", function () {
                         password: document.getElementById("password").value.trim()
                     })
                 });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || "Login failed");
+                }
+
+                // Validate response structure
+                if (!data.token || !data.user || !data.user.role) {
+                    throw new Error("Invalid response format from server");
+                }
 
                 localStorage.setItem("token", data.token);
                 localStorage.setItem("userData", JSON.stringify(data.user));
@@ -211,7 +222,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 
                 setTimeout(() => window.location.href = redirectPath, 1500);
             } catch (error) {
-                handleApiError(error);
+                console.error("Login error:", error);
+                showNotification(error.message || "Login failed. Please try again.", "error");
             } finally {
                 submitButton.disabled = false;
                 submitButton.textContent = "Login";
@@ -246,92 +258,100 @@ document.addEventListener("DOMContentLoaded", function () {
         window.location.href = `${basePath}/auth/login.html`;
     }
 
-    setupTokenExpirationCheck();
-
-    // Helper function to show notifications
-    function showNotification(message, type) {
-        // Check if notification container exists, if not create it
+    // Make showNotification globally accessible
+    window.showNotification = function(message, type) {
         let notificationContainer = document.querySelector(".notification-container");
         
         if (!notificationContainer) {
             notificationContainer = document.createElement("div");
             notificationContainer.className = "notification-container";
-            document.body.appendChild(notificationContainer);
-            
-            // Add styles for the notification container
             notificationContainer.style.position = "fixed";
             notificationContainer.style.top = "20px";
             notificationContainer.style.right = "20px";
             notificationContainer.style.zIndex = "1000";
+            document.body.appendChild(notificationContainer);
         }
         
-        // Create notification element
         const notification = document.createElement("div");
         notification.className = `notification ${type}`;
         notification.textContent = message;
-        
-        // Style the notification
         notification.style.padding = "12px 20px";
         notification.style.marginBottom = "10px";
         notification.style.borderRadius = "4px";
-        notification.style.boxShadow = "0 2px 5px rgba(0,0,0,0.2)";
-        notification.style.transition = "opacity 0.3s ease";
+        notification.style.backgroundColor = type === "success" ? "#28a745" : "#dc3545";
+        notification.style.color = "white";
         
-        if (type === "success") {
-            notification.style.backgroundColor = "#28a745";
-            notification.style.color = "white";
-        } else if (type === "error") {
-            notification.style.backgroundColor = "#dc3545";
-            notification.style.color = "white";
-        }
-        
-        // Add notification to container
         notificationContainer.appendChild(notification);
-        
-        // Remove notification after 3 seconds
-        setTimeout(() => {
-            notification.style.opacity = "0";
-            setTimeout(() => {
-                notificationContainer.removeChild(notification);
-            }, 300);
-        }, 3000);
-    }
+        setTimeout(() => notification.remove(), 3000);
+    };
 
-    // Add email validation function
-    function isValidEmail(email) {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return emailRegex.test(email);
-    }
+    // QR scanner initialization
+    let html5QrcodeScanner = null;
 
-    // Add debounced email check
-    let emailCheckTimeout;
-    async function checkEmailAvailability(email) {
+    async function initQRScanner() {
         try {
-            const response = await fetch(`${API_BASE_URL}/check-email/${encodeURIComponent(email)}`);
-            const data = await response.json();
-            return !data.exists;
+            const qrReader = document.getElementById('qr-reader');
+            if (!qrReader) return;
+
+            // Clean up existing scanner
+            if (html5QrcodeScanner) {
+                await html5QrcodeScanner.stop();
+                await html5QrcodeScanner.clear();
+            }
+
+            // Initialize new scanner
+            html5QrcodeScanner = new Html5QrcodeScanner(
+                "qr-reader",
+                {
+                    fps: 10,
+                    qrbox: { width: 250, height: 250 },
+                    rememberLastUsedCamera: true,
+                    aspectRatio: 1.0,
+                    showTorchButtonIfSupported: true
+                },
+                /* verbose= */ false
+            );
+
+            await html5QrcodeScanner.render(onQRCodeSuccess, onQRCodeError);
         } catch (error) {
-            console.error('Email check failed:', error);
-            return true; // Allow form submission on check failure
+            console.error('QR Scanner Error:', error);
+            showNotification('Failed to initialize camera', 'error');
         }
     }
 
-    // Add helper function to show field errors
-    function showFieldError(field, message) {
-        field.classList.add('error');
+    function onQRCodeSuccess(decodedText) {
+        try {
+            fetch(`${API_BASE_URL}/auth/qr-login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ qrData: decodedText })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.token) {
+                    if (html5QrcodeScanner) {
+                        html5QrcodeScanner.clear();
+                    }
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('userData', JSON.stringify(data.user));
+                    showNotification('Login successful!', 'success');
+                    
+                    setTimeout(() => {
+                        window.location.href = data.user.role === 'student' 
+                            ? '../student/student_dashboard.html'
+                            : '../teacher/teacher_dashboard.html';
+                    }, 1500);
+                }
+            })
+                    .catch(error => {
+                        console.error('QR login error:', error);
+                        showNotification('Failed to process QR code', 'error');
+                    });
+                } catch (error) {
+                    console.error('QR login error:', error);
+                    showNotification('Failed to process QR code', 'error');
+                }
+            }
         
-        // Remove existing error message if any
-        const existingError = field.parentElement.querySelector('.error-message');
-        if (existingError) existingError.remove();
-        
-        // Add new error message
-        const errorDiv = document.createElement('div');
-        errorDiv.className = 'error-message';
-        errorDiv.style.color = '#dc3545';
-        errorDiv.style.fontSize = '0.875rem';
-        errorDiv.style.marginTop = '0.25rem';
-        errorDiv.textContent = message;
-        
-        field.parentElement.appendChild(errorDiv);
-    }
-});
+        });
+       

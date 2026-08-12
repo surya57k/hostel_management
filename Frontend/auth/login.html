@@ -161,6 +161,22 @@
                 padding: var(--space-6);
             }
         }
+        
+        #qr-reader {
+            margin: 20px auto;
+            max-width: 300px;
+        }
+        
+        #qr-reader video {
+            width: 100%;
+            border-radius: 8px;
+        }
+        
+        #qr-message {
+            text-align: center;
+            margin: 10px 0;
+            color: #666;
+        }
     </style>
 </head>
 <body>
@@ -183,10 +199,27 @@
         </form>
         <div class="form-footer">
             <p>Don't have an account? <a href="register.html">Register here</a></p>
+            <p><a href="#" id="qrScannerToggle">Login with QR Code</a></p>
+            <div id="qr-reader" style="display: none;">
+                <div id="qr-message" style="text-align: center; margin: 10px 0; color: #666;"></div>
+            </div>
             <p><a href="../index.html"><i class="fas fa-home"></i> Back to Home</a></p>
         </div>
     </div>
 
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <script src="auth.js"></script>
+    <script>
+        // Wait for DOM and auth.js to load before adding event listener
+        document.addEventListener('DOMContentLoaded', function() {
+            const qrToggle = document.getElementById('qrScannerToggle');
+            if (qrToggle && typeof window.toggleQRScanner === 'function') {
+                qrToggle.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    window.toggleQRScanner();
+                });
+            }
+        });
+    </script>
 </body>
 </html>

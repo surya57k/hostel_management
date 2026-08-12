@@ -1,4 +1,119 @@
 /* Modern Dashboard Theme Variables */
+/* =========================================================
+   GLOBAL RESPONSIVE FIX
+   ========================================================= */
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+}
+
+body {
+    display: block;
+}
+
+/* Main dashboard layout */
+.dashboard-container,
+.main-content,
+.content-area {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+}
+
+/* Prevent flex/grid children from creating horizontal overflow */
+.main-content,
+.dashboard-container,
+.content-area,
+.quick-stats,
+.fee-summary {
+    min-width: 0;
+}
+
+/* =========================================================
+   PAYMENT TABLE FIX
+   ========================================================= */
+
+.payment-table {
+    width: 100%;
+    max-width: 100%;
+    table-layout: fixed;
+    word-break: break-word;
+}
+
+.payment-table th,
+.payment-table td {
+    max-width: 0;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+/* Make Pay Now button stay inside its table cell */
+.payment-table .pay-button {
+    position: relative;
+    z-index: 10;
+    max-width: 100%;
+    white-space: normal;
+    cursor: pointer;
+}
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 768px) {
+
+    .main-content {
+        width: 100%;
+        max-width: 100%;
+        margin-left: 0;
+    }
+
+    .dashboard-container {
+        width: 100%;
+        max-width: 100%;
+        padding: 1rem;
+        overflow-x: hidden;
+    }
+
+    .content-area {
+        width: 100%;
+        max-width: 100%;
+        padding: 1rem;
+        overflow-x: hidden;
+    }
+
+    .payment-table {
+        width: 100%;
+        max-width: 100%;
+        table-layout: fixed;
+        font-size: 0.85rem;
+    }
+
+    .payment-table th,
+    .payment-table td {
+        padding: 0.5rem;
+    }
+
+    .payment-table .pay-button {
+        width: 100%;
+        min-width: 0;
+        padding: 0.5rem;
+        font-size: 0.8rem;
+    }
+}
+
 :root {
     --primary-color: #3b82f6;
     --primary-light: #60a5fa;
@@ -24,7 +139,7 @@ body {
     background-color: var(--gray-100);
     margin: 0;
     padding: 0;
-    display: flex;
+    display: block;
     min-height: 100vh;
     color: var(--gray-800);
 }
@@ -808,5 +923,556 @@ button:hover {
     to {
         transform: translateX(0);
         opacity: 1;
+    }
+}
+
+/* QR Code Section */
+.qr-section {
+    margin-top: 2rem;
+    text-align: center;
+    padding: 1rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.qr-section h3 {
+    margin-bottom: 1rem;
+    color: var(--text-dark);
+}
+
+#qr-display {
+    margin: 1rem auto;
+    max-width: 200px;
+}
+
+#qr-display img {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.regenerate-btn {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 1rem auto;
+}
+
+.regenerate-btn:hover {
+    background-color: var(--primary-dark);
+}
+
+.qr-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 1rem;
+}
+
+.qr-button {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.qr-button:hover {
+    background-color: var(--primary-dark);
+    transform: translateY(-2px);
+}
+
+.qr-button i {
+    font-size: 1rem;
+}
+
+/* ============================================================
+   AVAILABLE ROOMS - FIXED LAYOUT
+   ============================================================ */
+
+.room-section {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+
+/* Room grid */
+
+.room-grid {
+    width: 100%;
+    max-width: 100%;
+    display: grid;
+
+    grid-template-columns:
+        repeat(
+            auto-fit,
+            minmax(240px, 1fr)
+        );
+
+    gap: 20px;
+
+    box-sizing: border-box;
+}
+
+
+/* Individual room card */
+
+.room-grid .room-card {
+    width: 100%;
+    max-width: 100%;
+
+    margin: 0;
+
+    padding: 20px;
+
+    box-sizing: border-box;
+
+    background: #ffffff;
+
+    border-radius: 10px;
+
+    box-shadow:
+        0 2px 8px
+        rgba(0, 0, 0, 0.10);
+
+    overflow: hidden;
+}
+
+
+/* Room heading */
+
+.room-grid .room-card h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+}
+
+
+/* Room information */
+
+.room-grid .room-card p {
+    margin: 10px 0;
+}
+
+
+/* Select Room button */
+
+.select-room-button {
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 8px;
+
+    width: 100%;
+
+    min-height: 45px;
+
+    margin-top: 20px;
+
+    padding: 12px 18px;
+
+    box-sizing: border-box;
+
+    border: none;
+
+    border-radius: 8px;
+
+    background: #3b82f6;
+
+    color: #ffffff;
+
+    font-size: 15px;
+
+    font-weight: 600;
+
+    cursor: pointer;
+
+    pointer-events: auto;
+
+    position: relative;
+
+    z-index: 10;
+
+    transition:
+        transform 0.2s ease,
+        background-color 0.2s ease;
+}
+
+
+/* Hover */
+
+.select-room-button:hover {
+    background: #2563eb;
+
+    transform: translateY(-2px);
+
+    cursor: pointer;
+}
+
+
+/* Active */
+
+.select-room-button:active {
+    transform: translateY(0);
+}
+
+
+/* Disabled */
+
+.select-room-button:disabled {
+    background: #9ca3af;
+
+    cursor: not-allowed;
+
+    pointer-events: none;
+
+    transform: none;
+}
+
+
+/* Make sure room card content doesn't overflow */
+
+.room-grid .room-card * {
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+
+@media (max-width: 768px) {
+
+    .room-grid {
+        grid-template-columns: 1fr;
+
+        width: 100%;
+    }
+
+    .room-grid .room-card {
+        width: 100%;
+
+        margin: 0 0 15px 0;
+    }
+
+    .select-room-button {
+        width: 100%;
+    }
+
+}
+
+
+/* ============================================================
+   PREVENT HORIZONTAL OVERFLOW
+   ============================================================ */
+
+.main-content {
+    min-width: 0;
+
+    width: calc(
+        100% - var(--sidebar-width)
+    );
+
+    box-sizing: border-box;
+}
+
+
+.dashboard-container {
+    width: 100%;
+
+    max-width: 100%;
+
+    box-sizing: border-box;
+}
+
+
+.content-area {
+    width: 100%;
+
+    max-width: 100%;
+
+    box-sizing: border-box;
+
+    overflow-x: hidden;
+}
+
+
+@media (max-width: 768px) {
+
+    .main-content {
+        width: 100%;
+
+        margin-left: 0;
+
+        min-width: 0;
+    }
+
+}
+
+/* ============================================================
+   GATE PASS REQUEST
+   ============================================================ */
+
+.gate-pass-section {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.gate-pass-section h2 {
+    margin-bottom: 1.5rem;
+}
+
+.gate-pass-form {
+    background: var(--gray-100);
+    padding: 1.5rem;
+    border-radius: var(--border-radius);
+    margin-bottom: 2rem;
+}
+
+.gate-pass-form h3 {
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+}
+
+
+/* Form fields */
+
+.gate-pass-form .form-group {
+    margin-bottom: 1.25rem;
+}
+
+.gate-pass-form label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+.gate-pass-form input,
+.gate-pass-form textarea {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    border: 1px solid var(--gray-300);
+    border-radius: 8px;
+    box-sizing: border-box;
+    font-family: inherit;
+    font-size: 0.95rem;
+    background: white;
+}
+
+.gate-pass-form textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+.gate-pass-form input:focus,
+.gate-pass-form textarea:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
+
+/* Submit button */
+
+.gate-pass-submit-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+
+    padding: 0.8rem 1.5rem;
+
+    background: var(--primary-color);
+    color: white;
+
+    border: none;
+    border-radius: 8px;
+
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition: var(--transition);
+}
+
+.gate-pass-submit-btn:hover {
+    background: var(--primary-dark);
+}
+
+.gate-pass-submit-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+
+/* History */
+
+.pass-history {
+    margin-top: 2rem;
+}
+
+.gate-pass-table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.gate-pass-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+}
+
+.gate-pass-table th,
+.gate-pass-table td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid var(--gray-200);
+}
+
+.gate-pass-table th {
+    background: var(--gray-100);
+    font-weight: 600;
+}
+
+
+/* Status */
+
+.gate-pass-status {
+    display: inline-block;
+    padding: 0.35rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.gate-pass-status.pending {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.gate-pass-status.approved {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.gate-pass-status.rejected {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+
+/* Mobile */
+
+@media (max-width: 768px) {
+
+    .gate-pass-section {
+        width: 100%;
+    }
+
+    .gate-pass-table th,
+    .gate-pass-table td {
+        padding: 0.7rem;
+        font-size: 0.85rem;
+    }
+
+}
+
+/* ============================================================
+   FINAL DASHBOARD WIDTH / CLICK FIX
+   ============================================================ */
+
+html {
+    width: 100% !important;
+    min-width: 100% !important;
+}
+
+body.dashboard {
+    width: 100% !important;
+    min-width: 100% !important;
+    max-width: none !important;
+    display: block !important;
+    overflow-x: auto !important;
+}
+
+/* Main content must occupy the available desktop area */
+body.dashboard .main-content {
+    width: calc(100% - 250px) !important;
+    min-width: 0 !important;
+    margin-left: 250px !important;
+    box-sizing: border-box !important;
+}
+
+/* Dashboard container */
+body.dashboard .dashboard-container {
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+}
+
+/* Content */
+body.dashboard .content-area {
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+}
+
+/* Tables */
+body.dashboard .payment-table {
+    width: 100% !important;
+    max-width: 100% !important;
+}
+
+/* Pay button */
+body.dashboard .pay-button {
+    position: relative !important;
+    z-index: 9999 !important;
+    pointer-events: auto !important;
+    cursor: pointer !important;
+}
+
+/* Desktop */
+@media (min-width: 769px) {
+
+    body.dashboard .sidebar {
+        width: 250px !important;
+        left: 0 !important;
+    }
+
+    body.dashboard .main-content {
+        margin-left: 250px !important;
+        width: calc(100% - 250px) !important;
+    }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+
+    body.dashboard .sidebar {
+        left: -250px !important;
+    }
+
+    body.dashboard .sidebar.active {
+        left: 0 !important;
+    }
+
+    body.dashboard .main-content {
+        width: 100% !important;
+        margin-left: 0 !important;
     }
 }

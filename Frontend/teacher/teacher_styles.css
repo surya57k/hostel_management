@@ -258,3 +258,84 @@ body {
     color: #721c24;
     border: 1px solid #f5c6cb;
 }
+/* ============================================================
+   TEACHER PROFILE
+   ============================================================ */
+
+.profile-card {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    max-width: 900px;
+    margin: 1.5rem auto;
+}
+
+.profile-header {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid #eee;
+}
+
+.profile-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f0f4ff;
+    font-size: 2rem;
+}
+
+.profile-header h3 {
+    margin: 0 0 0.4rem;
+}
+
+.profile-header p {
+    margin: 0;
+    color: #777;
+}
+
+.profile-details {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.profile-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    border-radius: 8px;
+    background: #f8f9fa;
+}
+
+.profile-item > i {
+    font-size: 1.2rem;
+}
+
+.profile-item span {
+    display: block;
+    font-size: 0.8rem;
+    color: #777;
+    margin-bottom: 0.25rem;
+}
+
+.profile-item strong {
+    display: block;
+}
+
+@media (max-width: 768px) {
+    .profile-details {
+        grid-template-columns: 1fr;
+    }
+
+    .profile-card {
+        padding: 1rem;
+    }
+}

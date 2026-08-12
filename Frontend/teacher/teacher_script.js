@@ -34,7 +34,7 @@ document.addEventListener("DOMContentLoaded", function () {
     };
     
     // Flag to use mock data instead of API calls
-    const USE_MOCK_DATA = true;
+    const USE_MOCK_DATA = false;
     
     // Helper function to make authenticated API calls
     async function fetchWithAuth(endpoint, options = {}) {
@@ -173,6 +173,9 @@ document.addEventListener("DOMContentLoaded", function () {
         
         // Call the appropriate function based on the page
         switch(page) {
+            case 'profile':
+    showTeacherProfile();
+    break;
             case 'dashboard':
                 showWelcomeMessage();
                 break;
@@ -212,45 +215,206 @@ document.addEventListener("DOMContentLoaded", function () {
             return MOCK_DATA.profile;
         }
     }
+// Display teacher profile
+    async function showTeacherProfile() {
+    const contentArea = document.querySelector('.content-area');
+
+    if (!contentArea) return;
+
+    contentArea.innerHTML = `
+        <div class="page-header">
+            <h2>
+                <i class="fas fa-user"></i>
+                My Profile
+            </h2>
+            <p>View your teacher information</p>
+        </div>
+
+        <div class="profile-card">
+            <div class="profile-header">
+                <div class="profile-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+
+                <div>
+                    <h3 id="profileName">Loading...</h3>
+                    <p id="profilePost">Teacher</p>
+                </div>
+            </div>
+
+            <div class="profile-details">
+
+                <div class="profile-item">
+                    <i class="fas fa-user"></i>
+                    <div>
+                        <span>Name</span>
+                        <strong id="profileFullName">-</strong>
+                    </div>
+                </div>
+
+                <div class="profile-item">
+                    <i class="fas fa-envelope"></i>
+                    <div>
+                        <span>Email</span>
+                        <strong id="profileEmail">-</strong>
+                    </div>
+                </div>
+
+                <div class="profile-item">
+                    <i class="fas fa-phone"></i>
+                    <div>
+                        <span>Phone</span>
+                        <strong id="profilePhone">-</strong>
+                    </div>
+                </div>
+
+                <div class="profile-item">
+                    <i class="fas fa-id-card"></i>
+                    <div>
+                        <span>Teacher ID</span>
+                        <strong id="profileTeacherId">-</strong>
+                    </div>
+                </div>
+
+                <div class="profile-item">
+                    <i class="fas fa-building"></i>
+                    <div>
+                        <span>Department</span>
+                        <strong id="profileDepartment">-</strong>
+                    </div>
+                </div>
+
+                <div class="profile-item">
+                    <i class="fas fa-briefcase"></i>
+                    <div>
+                        <span>Post</span>
+                        <strong id="profileTeacherPost">-</strong>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    `;
+
+    try {
+        const profile =
+            await fetchWithAuth('/teacher/profile');
+
+        document.getElementById('profileName').textContent =
+            profile?.name || 'Teacher';
+
+        document.getElementById('profilePost').textContent =
+            profile?.post || 'Teacher';
+
+        document.getElementById('profileFullName').textContent =
+            profile?.name || '-';
+
+        document.getElementById('profileEmail').textContent =
+            profile?.email || '-';
+
+        document.getElementById('profilePhone').textContent =
+            profile?.phone || '-';
+
+        document.getElementById('profileTeacherId').textContent =
+            profile?.teacher_id || '-';
+
+        document.getElementById('profileDepartment').textContent =
+            profile?.teacher_dept || '-';
+
+        document.getElementById('profileTeacherPost').textContent =
+            profile?.post || '-';
+
+    } catch (error) {
+        console.error(
+            'Error loading teacher profile:',
+            error
+        );
+
+        contentArea.innerHTML = `
+            <div class="error-message">
+                <i class="fas fa-exclamation-triangle"></i>
+                <h3>Unable to Load Profile</h3>
+                <p>Please try again later.</p>
+            </div>
+        `;
+    }
+}
 
     // Initialize dashboard data
     async function initializeDashboard() {
-        try {
-            // Fetch all necessary data for the dashboard
-            const [profile, students, rooms, complaints] = await Promise.all([
-                fetchWithAuth('/teacher/profile'),
-                fetchWithAuth('/teacher/students'),
-                fetchWithAuth('/rooms'),
-                fetchWithAuth('/teacher/complaints')
-            ]);
+    try {
 
-            // Update teacher name
-            const teacherNameElement = document.getElementById("teacherName");
-            if (teacherNameElement) {
-                teacherNameElement.innerText = profile?.name || "Teacher";
-            }
+        // Fetch teacher profile and dashboard statistics
+        const [profile, dashboardData] = await Promise.all([
+            fetchWithAuth('/teacher/profile'),
+            fetchWithAuth('/teacher/dashboard')
+        ]);
 
-            // Update dashboard stats
-            const totalStudentsElement = document.getElementById("totalStudents");
-            if (totalStudentsElement) {
-                totalStudentsElement.innerText = students?.students?.length || 0;
-            }
+        // --------------------------------------------------------
+        // Teacher name
+        // --------------------------------------------------------
 
-            const vacantRoomsElement = document.getElementById("vacantRooms");
-            if (vacantRoomsElement) {
-                vacantRoomsElement.innerText = rooms?.filter(room => room.available_slots > 0).length || 0;
-            }
+        const teacherNameElement =
+            document.getElementById("teacherName");
 
-            const pendingComplaintsElement = document.getElementById("pendingComplaints");
-            if (pendingComplaintsElement) {
-                pendingComplaintsElement.innerText = complaints?.complaints?.filter(complaint => complaint.status === 'pending').length || 0;
-            }
-
-        } catch (error) {
-            console.error('Error initializing dashboard:', error);
-            showError('Failed to load dashboard data. Please refresh the page.');
+        if (teacherNameElement) {
+            teacherNameElement.innerText =
+                profile?.name || "Teacher";
         }
+
+        // --------------------------------------------------------
+        // Total Students
+        // --------------------------------------------------------
+
+        const totalStudentsElement =
+            document.getElementById("totalStudents");
+
+        if (totalStudentsElement) {
+            totalStudentsElement.innerText =
+                dashboardData?.students?.total_students || 0;
+        }
+
+        // --------------------------------------------------------
+        // Available Rooms
+        // --------------------------------------------------------
+
+        const vacantRoomsElement =
+            document.getElementById("vacantRooms");
+
+        if (vacantRoomsElement) {
+            vacantRoomsElement.innerText =
+                dashboardData?.rooms?.available_rooms || 0;
+        }
+
+        // --------------------------------------------------------
+        // Pending Complaints
+        // --------------------------------------------------------
+
+        const pendingComplaintsElement =
+            document.getElementById("pendingComplaints");
+
+        if (pendingComplaintsElement) {
+            pendingComplaintsElement.innerText =
+                dashboardData?.complaints?.pending_complaints || 0;
+        }
+
+        console.log(
+            "Teacher dashboard data:",
+            dashboardData
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Error initializing dashboard:",
+            error
+        );
+
+        showError(
+            "Failed to load dashboard data. Please refresh the page."
+        );
     }
+}
 
     // Show welcome message
     function showWelcomeMessage() {
@@ -340,12 +504,20 @@ document.addEventListener("DOMContentLoaded", function () {
                                 <p><strong>Capacity:</strong> ${room.capacity} students</p>
                                 <p><strong>Available Slots:</strong> ${room.available_slots}</p>
                                 <div class="room-actions">
-                                    <button onclick="updateRoomStatus(${room.room_id}, ${room.available_slots})" class="update-btn">
+                                    <button onclick="updateRoomStatus(
+    ${room.id},
+    ${room.available_slots},
+    ${room.capacity},
+    '${room.status}'
+)" class="update-btn">
                                         <i class="fas fa-edit"></i> Update Status
                                     </button>
-                                    <button onclick="viewRoomAllocations(${room.room_id})" class="view-btn">
-                                        <i class="fas fa-users"></i> View Allocations
-                                    </button>
+                                    <button
+    onclick="viewRoomAllocations(${room.id})"
+    class="view-btn"
+>
+    <i class="fas fa-users"></i> View Allocations
+</button>
                                 </div>
                             </div>
                         `).join('') : '<p>No rooms available</p>'}
@@ -359,49 +531,103 @@ document.addEventListener("DOMContentLoaded", function () {
     };
 
     // Update room status
-    window.updateRoomStatus = async function(roomId, currentSlots) {
-        try {
-            const newSlots = prompt(`Enter new available slots (current: ${currentSlots}):`, currentSlots);
-            
-            if (newSlots === null) return; // User cancelled
-            
-            const response = await fetchWithAuth('/teacher/update-room-status', {
+window.updateRoomStatus = async function(roomId, currentSlots, currentCapacity, currentStatus) {
+    try {
+        const newCapacity = prompt(
+            `Enter new room capacity (current: ${currentCapacity}):`,
+            currentCapacity
+        );
+
+        if (newCapacity === null) return;
+
+        const capacity = parseInt(newCapacity);
+
+        if (isNaN(capacity) || capacity <= 0) {
+            showError('Please enter a valid capacity.');
+            return;
+        }
+
+        const newStatus = prompt(
+            `Enter room status (available/full/maintenance):`,
+            currentStatus || 'available'
+        );
+
+        if (newStatus === null) return;
+
+        const status = newStatus.trim().toLowerCase();
+
+        if (!['available', 'full', 'maintenance'].includes(status)) {
+            showError(
+                'Status must be available, full, or maintenance.'
+            );
+            return;
+        }
+
+        const response = await fetchWithAuth(
+            '/rooms/update',
+            {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    room_id: roomId,
-                    available_slots: parseInt(newSlots)
+                    roomId: roomId,
+                    capacity: capacity,
+                    status: status
                 })
-            });
-
-            if (response?.success) {
-                showSuccess('Room status updated successfully');
-                manageRooms(); // Refresh the view
-            } else {
-                showError(response?.message || 'Failed to update room status');
             }
-        } catch (error) {
-            console.error('Error updating room status:', error);
-            showError('Failed to update room status. Please try again.');
+        );
+
+        if (response) {
+            showSuccess(
+                response.message ||
+                'Room updated successfully'
+            );
+
+            await manageRooms();
         }
-    };
+
+    } catch (error) {
+        console.error(
+            'Error updating room status:',
+            error
+        );
+
+        showError(
+            'Failed to update room status. Please try again.'
+        );
+    }
+};
 
     // View room allocations
     window.viewRoomAllocations = async function(roomId) {
-        try {
-            const response = await fetchWithAuth(`/teacher/room-allocations/${roomId}`);
-            const allocations = response?.allocations || [];
-            
-            const contentArea = document.querySelector('.content-area');
-            if (!contentArea) return;
-            
-            contentArea.innerHTML = `
-                <div class="allocations-section">
-                    <h2>Room Allocations</h2>
+    try {
+
+        const response = await fetchWithAuth(
+            `/rooms/${roomId}/students`
+        );
+
+        const allocations = Array.isArray(response)
+            ? response
+            : [];
+
+        const contentArea =
+            document.querySelector('.content-area');
+
+        if (!contentArea) return;
+
+        contentArea.innerHTML = `
+            <div class="allocations-section">
+
+                <h2>Room Allocations</h2>
+
+                ${
+                    allocations.length > 0
+                    ? `
                     <div class="allocations-table-container">
+
                         <table class="allocations-table">
+
                             <thead>
                                 <tr>
                                     <th>Student Name</th>
@@ -412,40 +638,96 @@ document.addEventListener("DOMContentLoaded", function () {
                                     <th>Status</th>
                                 </tr>
                             </thead>
+
                             <tbody>
-                                ${Array.isArray(allocations) ? allocations.map(allocation => `
+
+                                ${allocations.map(allocation => `
                                     <tr>
-                                        <td>${allocation.student_name}</td>
-                                        <td>${allocation.roll_no}</td>
-                                        <td>${allocation.student_dept}</td>
-                                        <td>${allocation.year}</td>
-                                        <td>${new Date(allocation.allocated_date).toLocaleDateString()}</td>
+
                                         <td>
-                                            <span class="status ${allocation.status.toLowerCase()}">
-                                                ${allocation.status}
+                                            ${allocation.name || '-'}
+                                        </td>
+
+                                        <td>
+                                            ${allocation.roll_no || '-'}
+                                        </td>
+
+                                        <td>
+                                            ${allocation.student_dept || '-'}
+                                        </td>
+
+                                        <td>
+                                            ${allocation.year || '-'}
+                                        </td>
+
+                                        <td>
+                                            ${
+                                                allocation.allocated_date
+                                                ? new Date(
+                                                    allocation.allocated_date
+                                                ).toLocaleDateString()
+                                                : '-'
+                                            }
+                                        </td>
+
+                                        <td>
+                                            <span class="status ${
+                                                allocation.status || ''
+                                            }">
+                                                ${allocation.status || '-'}
                                             </span>
                                         </td>
+
                                     </tr>
-                                `).join('') : '<tr><td colspan="6">No allocations found</td></tr>'}
+                                `).join('')}
+
                             </tbody>
+
                         </table>
+
                     </div>
-                    <button onclick="manageRooms()" class="back-btn">
-                        <i class="fas fa-arrow-left"></i> Back to Rooms
-                    </button>
-                </div>
-            `;
-        } catch (error) {
-            console.error('Error fetching room allocations:', error);
-            showError('Failed to load room allocations. Please try again.');
-        }
-    };
+                    `
+                    : `
+                    <div class="empty-state">
+                        <i class="fas fa-users"></i>
+                        <h3>No Students Allocated</h3>
+                        <p>
+                            No students are currently allocated
+                            to this room.
+                        </p>
+                    </div>
+                    `
+                }
+
+                <button
+                    onclick="manageRooms()"
+                    class="back-btn"
+                >
+                    <i class="fas fa-arrow-left"></i>
+                    Back to Rooms
+                </button>
+
+            </div>
+        `;
+
+    } catch (error) {
+
+        console.error(
+            'Error fetching room allocations:',
+            error
+        );
+
+        showError(
+            'Failed to load room allocations. Please try again.'
+        );
+    }
+};
 
     // Gate Pass Management
     window.manageGateRequests = async function() {
         try {
             const response = await fetchWithAuth('/teacher/gate-passes');
-            const gatePasses = response?.gate_passes || [];
+            const gatePasses = Array.isArray(response) ? response : [];
             
             const contentArea = document.querySelector('.content-area');
             if (!contentArea) return;
@@ -472,8 +754,8 @@ document.addEventListener("DOMContentLoaded", function () {
                                         <td>${pass.student_name}</td>
                                         <td>${pass.roll_no}</td>
                                         <td>${pass.reason}</td>
-                                        <td>${new Date(pass.from_date).toLocaleString()}</td>
-                                        <td>${new Date(pass.to_date).toLocaleString()}</td>
+                                        <td>${new Date(pass.leave_date).toLocaleString()}</td>
+                                        <td>${new Date(pass.return_date).toLocaleString()}</td>
                                         <td>
                                             <span class="status ${pass.status.toLowerCase()}">
                                                 ${pass.status}
@@ -481,10 +763,10 @@ document.addEventListener("DOMContentLoaded", function () {
                                         </td>
                                         <td>
                                             ${pass.status === 'pending' ? `
-                                                <button onclick="updateGatePassStatus(${pass.pass_id}, 'approved')" class="approve-btn">
+                                                <button onclick="updateGatePassStatus(${pass.id}, 'approved')" class="approve-btn">
                                                     <i class="fas fa-check"></i> Approve
                                                 </button>
-                                                <button onclick="updateGatePassStatus(${pass.pass_id}, 'rejected')" class="reject-btn">
+                                                <button onclick="updateGatePassStatus(${pass.id}, 'rejected')" class="reject-btn">
                                                     <i class="fas fa-times"></i> Reject
                                                 </button>
                                             ` : '-'}
@@ -503,36 +785,146 @@ document.addEventListener("DOMContentLoaded", function () {
     };
 
     // Update gate pass status
-    window.updateGatePassStatus = async function(passId, status) {
-        try {
-            const response = await fetchWithAuth('/teacher/update-gate-pass', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    pass_id: passId,
-                    status: status
-                })
-            });
+    // ============================================================
+// UPDATE GATE PASS STATUS
+// ============================================================
 
-            if (response?.success) {
-                showSuccess(`Gate pass ${status} successfully`);
-                manageGateRequests(); // Refresh the view
-            } else {
-                showError(response?.message || `Failed to ${status} gate pass`);
-            }
-        } catch (error) {
-            console.error('Error updating gate pass status:', error);
-            showError(`Failed to ${status} gate pass. Please try again.`);
+window.updateGatePassStatus = async function(passId, status) {
+
+    try {
+
+        console.log("================================");
+        console.log("UPDATING GATE PASS");
+        console.log("Pass ID:", passId);
+        console.log("Status:", status);
+        console.log("================================");
+
+
+        // Confirm action
+
+        const actionText =
+            status === "approved"
+                ? "approve"
+                : "reject";
+
+
+        const confirmed = confirm(
+            `Are you sure you want to ${actionText} this gate pass?`
+        );
+
+
+        if (!confirmed) {
+            return;
         }
-    };
 
+
+        // Disable buttons while processing
+
+        const buttons =
+            document.querySelectorAll(
+                ".approve-btn, .reject-btn"
+            );
+
+
+        buttons.forEach(button => {
+            button.disabled = true;
+        });
+
+
+        // --------------------------------------------------------
+        // Actual backend request
+        // --------------------------------------------------------
+
+        const response =
+            await fetchWithAuth(
+                `/teacher/gate-passes/${passId}`,
+                {
+                    method: "PUT",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body: JSON.stringify({
+                        status: status
+                    })
+                }
+            );
+
+
+        console.log(
+            "Gate pass update response:",
+            response
+        );
+
+
+        // --------------------------------------------------------
+        // Check response
+        // --------------------------------------------------------
+
+        if (
+            response &&
+            !response.error
+        ) {
+
+            alert(
+                `Gate pass ${status} successfully.`
+            );
+
+
+            // Reload requests
+
+            await manageGateRequests();
+
+        } else {
+
+            throw new Error(
+                response?.error ||
+                response?.message ||
+                `Failed to ${status} gate pass`
+            );
+
+        }
+
+
+    } catch (error) {
+
+        console.error(
+            "Gate pass update error:",
+            error
+        );
+
+
+        alert(
+            error.message ||
+            `Failed to ${status} gate pass`
+        );
+
+
+        // Re-enable buttons
+
+        const buttons =
+            document.querySelectorAll(
+                ".approve-btn, .reject-btn"
+            );
+
+
+        buttons.forEach(button => {
+            button.disabled = false;
+        });
+
+    }
+
+};
     // Complaints Management
     window.handleComplaints = async function() {
-        try {
-            const response = await fetchWithAuth('/teacher/complaints');
-            const complaints = response?.complaints || [];
+    try {
+        const response = await fetchWithAuth('/teacher/complaints');
+
+        const complaints = Array.isArray(response)
+            ? response
+            : (response?.complaints || []);
             
             const contentArea = document.querySelector('.content-area');
             if (!contentArea) return;
@@ -568,7 +960,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                         </td>
                                         <td>
                                             ${complaint.status === 'pending' ? `
-                                                <button onclick="updateComplaintStatus(${complaint.complaint_id}, 'resolved')" class="resolve-btn">
+                                                <button onclick="updateComplaintStatus(${complaint.id}, 'resolved')" class="resolve-btn">
                                                     <i class="fas fa-check"></i> Resolve
                                                 </button>
                                             ` : '-'}
@@ -588,29 +980,52 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Update complaint status
     window.updateComplaintStatus = async function(complaintId, status) {
-        try {
-            const response = await fetchWithAuth('/teacher/update-complaint', {
-                method: 'POST',
+    try {
+
+        const response = await fetchWithAuth(
+            `/teacher/complaints/${complaintId}`,
+            {
+                method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    complaint_id: complaintId,
                     status: status
                 })
-            });
-
-            if (response?.success) {
-                showSuccess('Complaint status updated successfully');
-                handleComplaints(); // Refresh the view
-            } else {
-                showError(response?.message || 'Failed to update complaint status');
             }
-        } catch (error) {
-            console.error('Error updating complaint status:', error);
-            showError('Failed to update complaint status. Please try again.');
+        );
+
+        console.log('Complaint update response:', response);
+
+        if (response && !response.error) {
+
+            showSuccess(
+                'Complaint status updated successfully'
+            );
+
+            await handleComplaints();
+
+        } else {
+
+            showError(
+                response?.error ||
+                response?.message ||
+                'Failed to update complaint status'
+            );
         }
-    };
+
+    } catch (error) {
+
+        console.error(
+            'Error updating complaint status:',
+            error
+        );
+
+        showError(
+            'Failed to update complaint status. Please try again.'
+        );
+    }
+};
 
     // Fee Verification
     window.verifyFees = async function() {
@@ -956,9 +1371,19 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Mark Attendance
     window.markAttendance = async function() {
-        try {
-            const response = await fetchWithAuth('/teacher/students');
-            const students = response?.students || [];
+    try {
+
+        const response =
+            await fetchWithAuth('/teacher/students');
+
+        // Backend returns students directly as an array
+        const students =
+            Array.isArray(response)
+                ? response
+                : (response?.students || []);
+
+        console.log("Attendance students:", students);
+
             const today = new Date().toISOString().split('T')[0];
             
             const contentArea = document.querySelector('.content-area');
@@ -988,7 +1413,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                         <td>${student.name}</td>
                                         <td>${student.student_dept}</td>
                                         <td>
-                                            <select id="status_${student.id}" class="status-select">
+                                            <select id="status_${student.student_id}" class="status-select">
                                                 <option value="present">Present</option>
                                                 <option value="absent">Absent</option>
                                                 <option value="leave">Leave</option>
@@ -1010,56 +1435,243 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     };
 
-    // Save attendance
-    window.saveAttendance = async function() {
-        try {
-            const date = document.getElementById("attendanceDate");
-            if (!date) return;
-            
-            const dateValue = date.value;
-            const students = document.querySelectorAll('.attendance-table tbody tr');
-            const attendanceData = [];
-            
-            students.forEach(student => {
-                const selectElement = student.querySelector('select');
-                if (selectElement) {
-                    const studentId = selectElement.id.split('_')[1];
-                    const status = selectElement.value;
-                    
-                    attendanceData.push({
+    // Save Attendance
+   window.saveAttendance = async function () {
+
+    try {
+
+        const dateElement =
+            document.getElementById("attendanceDate");
+
+        if (!dateElement) {
+            alert("Attendance date field not found.");
+            return;
+        }
+
+        const dateValue = dateElement.value;
+
+        if (!dateValue) {
+            alert("Please select a date.");
+            return;
+        }
+
+
+        // Find every attendance select directly
+        const selects =
+            document.querySelectorAll(
+                '.attendance-table tbody select.status-select'
+            );
+
+
+        console.log(
+            "Attendance select count:",
+            selects.length
+        );
+
+
+        if (selects.length === 0) {
+
+            alert(
+                "No students found in the attendance table."
+            );
+
+            return;
+        }
+
+
+        let successCount = 0;
+        let failedCount = 0;
+
+
+        for (const select of selects) {
+
+            // id is status_1, status_2, etc.
+            const idParts =
+                select.id.split("_");
+
+            const studentId =
+                Number(idParts[1]);
+
+            const status =
+                select.value;
+
+
+            console.log(
+                "Marking attendance:",
+                {
+                    student_id: studentId,
+                    date: dateValue,
+                    status: status
+                }
+            );
+
+
+            if (!studentId) {
+
+                console.error(
+                    "Invalid student ID:",
+                    select.id
+                );
+
+                failedCount++;
+
+                continue;
+            }
+
+
+            try {
+
+                const response =
+                    await fetchWithAuth(
+                        "/teacher/attendance",
+                        {
+                            method: "POST",
+
+                            headers: {
+                                "Content-Type":
+                                    "application/json"
+                            },
+
+                            body: JSON.stringify({
+                                student_id:
+                                    studentId,
+
+                                date:
+                                    dateValue,
+
+                                status:
+                                    status
+                            })
+                        }
+                    );
+
+
+                console.log(
+                    "Attendance API response:",
+                    response
+                );
+
+
+                if (
+                    response &&
+                    !response.error
+                ) {
+
+                    successCount++;
+
+                } else {
+
+                    failedCount++;
+
+                    console.error(
+                        "Attendance failed:",
+                        response
+                    );
+
+                }
+
+            } catch (error) {
+
+                failedCount++;
+
+                console.error(
+                    "Attendance request failed:",
+                    {
                         student_id: studentId,
                         date: dateValue,
-                        status: status
-                    });
-                }
-            });
-            
-            const response = await fetchWithAuth('/teacher/attendance', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    attendance: attendanceData
-                })
-            });
+                        status: status,
+                        error: error
+                    }
+                );
 
-            if (response?.success) {
-                showSuccess('Attendance marked successfully');
-            } else {
-                showError(response?.message || 'Failed to mark attendance');
             }
-        } catch (error) {
-            console.error('Error saving attendance:', error);
-            showError('Failed to save attendance. Please try again.');
+
         }
-    };
+
+
+        // --------------------------------------------------
+        // Final message
+        // --------------------------------------------------
+
+        if (successCount > 0 && failedCount === 0) {
+
+            showSuccess(
+                `Attendance saved successfully for ${successCount} students.`
+            );
+
+        } else if (successCount > 0) {
+
+            showError(
+                `Attendance saved for ${successCount} students. ${failedCount} failed.`
+            );
+
+        } else {
+
+            showError(
+                "Attendance could not be saved. Check the browser console."
+            );
+
+        }
+
+
+    } catch (error) {
+
+        console.error(
+            "Save attendance error:",
+            error
+        );
+
+        showError(
+            "Failed to save attendance."
+        );
+
+    }
+
+};
 
     // Logout function
     window.logout = function() {
         localStorage.removeItem('token');
         window.location.href = '../auth/login.html';
     };
+
+    // Room management functions
+    async function loadRooms() {
+        try {
+            const response = await fetchWithAuth('/api/rooms/manage');
+            const rooms = await response.json();
+            
+            const content = document.getElementById('content');
+            content.innerHTML = `
+                <h2>Room Management</h2>
+                <div class="room-grid">
+                    ${rooms.map(room => `
+                        <div class="room-card">
+                            <h3>Room ${room.room_number}</h3>
+                            <p>Block: ${room.block}</p>
+                            <p>Capacity: ${room.capacity}</p>
+                            <p>Occupied: ${room.occupied_slots || 0}</p>
+                            <p>Status: ${room.status}</p>
+                            <div class="student-list">
+                                ${room.student_names ? 
+                                    `<p>Students: ${room.student_names.split(',').join(', ')}</p>` : 
+                                    '<p>No students assigned</p>'
+                                }
+                            </div>
+                            <button onclick="editRoom(${room.id})">Edit Room</button>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        } catch (error) {
+            showNotification('Failed to load rooms', 'error');
+        }
+    }
+
+    async function editRoom(roomId) {
+        // Add room editing functionality
+        // ...existing code...
+    }
 
     // Initialize the dashboard when the page loads
     showWelcomeMessage();

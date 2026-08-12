@@ -3,197 +3,1345 @@ const router = express.Router();
 const db = require('../config/db');
 const auth = require('../middleware/auth');
 
-// Get all students
-router.get('/students', auth, async (req, res) => {
-    try {
-        const [students] = await db.execute('SELECT * FROM students');
-        res.json(students);
-    } catch (error) {
-        console.error('Error fetching students:', error);
-        res.status(500).json({ error: 'Failed to fetch students' });
-    }
-});
+// ============================================================
+// TEACHER PROFILE
+// ============================================================
 
-// Get student by ID
-router.get('/student/:id', auth, async (req, res) => {
+router.get('/profile', auth, async (req, res) => {
     try {
-        const [student] = await db.execute('SELECT * FROM students WHERE id = ?', [req.params.id]);
-        if (student.length === 0) {
-            return res.status(404).json({ error: 'Student not found' });
+
+        const [rows] = await db.execute(`
+            SELECT
+                u.id,
+                u.name,
+                u.email,
+                u.phone,
+                u.role,
+                t.id AS teacher_record_id,
+                t.teacher_id,
+                t.teacher_dept,
+                t.post,
+                t.created_at
+            FROM users u
+            LEFT JOIN teachers t
+                ON u.id = t.user_id
+            WHERE u.id = ?
+        `, [req.user.id]);
+
+        if (rows.length === 0) {
+            return res.status(404).json({
+                error: 'Teacher profile not found'
+            });
         }
-        res.json(student[0]);
+
+        res.json(rows[0]);
+
     } catch (error) {
-        console.error('Error fetching student:', error);
-        res.status(500).json({ error: 'Failed to fetch student' });
+
+        console.error('Teacher profile error:', error);
+
+        res.status(500).json({
+            error: 'Failed to fetch teacher profile'
+        });
     }
 });
 
-// Add room allocation
-router.post('/add-room-allocation', auth, async (req, res) => {
-    const { student_id, room_id } = req.body;
-    try {
-        await db.query('INSERT INTO room_allocations (student_id, room_id, status) VALUES (?, ?, "active")', [student_id, room_id]);
-        await db.query('UPDATE rooms SET available_slots = available_slots - 1 WHERE room_id = ?', [room_id]);
-        res.json({ message: 'Room allocated successfully' });
-    } catch (error) {
-        console.error('Error allocating room:', error);
-        res.status(500).json({ message: 'Error allocating room' });
-    }
-});
 
-// Mark attendance
-router.post('/attendance', auth, async (req, res) => {
-    try {
-        const { attendance } = req.body;
-        const teacherId = req.user.teacher_id;
-        
-        // Start a transaction
-        await db.beginTransaction();
-        
-        try {
-            for (const record of attendance) {
-                const { student_id, date, status } = record;
-                
-                await db.execute(
-                    'INSERT INTO attendance (student_id, date, status, marked_by) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE status = ?, marked_by = ?',
-                    [student_id, date, status, teacherId, status, teacherId]
-                );
-            }
-            
-            // Commit the transaction
-            await db.commit();
-            res.json({ message: 'Attendance marked successfully' });
-        } catch (error) {
-            // Rollback in case of error
-            await db.rollback();
-            throw error;
-        }
-    } catch (error) {
-        console.error('Error marking attendance:', error);
-        res.status(500).json({ error: 'Failed to mark attendance' });
-    }
-});
+// ============================================================
+// DASHBOARD
+// ============================================================
 
-// Get attendance report
-router.get('/attendance-report', auth, async (req, res) => {
-    try {
-        const { from_date, to_date } = req.query;
-        const [attendance] = await db.execute(`
-            SELECT a.*, s.name, s.roll_no 
-            FROM attendance a 
-            JOIN students s ON a.student_id = s.id 
-            WHERE a.date BETWEEN ? AND ?
-            ORDER BY a.date DESC, s.roll_no
-        `, [from_date, to_date]);
-        res.json(attendance);
-    } catch (error) {
-        console.error('Error fetching attendance report:', error);
-        res.status(500).json({ error: 'Failed to fetch attendance report' });
-    }
-});
+router.get('/dashboard', auth, async (req, res) => {
 
-// Verify fee payment
-router.post('/verify-fee', auth, async (req, res) => {
     try {
-        const { receipt_id, status } = req.body;
-        await db.execute('UPDATE hostel_fees SET status = ? WHERE receipt_id = ?', [status, receipt_id]);
-        res.json({ message: 'Fee payment verified successfully' });
-    } catch (error) {
-        console.error('Error verifying fee payment:', error);
-        res.status(500).json({ error: 'Failed to verify fee payment' });
-    }
-});
 
-// Get all fees
-router.get('/fees', auth, async (req, res) => {
-    try {
-        const [fees] = await db.execute(`
-            SELECT f.*, s.name, s.roll_no 
-            FROM hostel_fees f 
-            JOIN students s ON f.user_id = s.id
+        const [students] = await db.execute(`
+            SELECT COUNT(*) AS total_students
+            FROM students
         `);
-        res.json(fees);
-    } catch (error) {
-        console.error('Error fetching fees:', error);
-        res.status(500).json({ error: 'Failed to fetch fees' });
-    }
-});
 
-// Update room status
-router.put('/update-room-status', auth, async (req, res) => {
-    try {
-        const { room_id, available_slots } = req.body;
-        await db.execute('UPDATE rooms SET available_slots = ? WHERE room_id = ?', [available_slots, room_id]);
-        res.json({ message: 'Room status updated successfully' });
-    } catch (error) {
-        console.error('Error updating room status:', error);
-        res.status(500).json({ error: 'Failed to update room status' });
-    }
-});
 
-// Get all rooms
-router.get('/rooms', auth, async (req, res) => {
-    try {
-        const [rooms] = await db.query('SELECT * FROM rooms ORDER BY block, room_number');
-        res.json(rooms);
-    } catch (error) {
-        console.error('Error fetching rooms:', error);
-        res.status(500).json({ message: 'Error fetching rooms' });
-    }
-});
+        const [rooms] = await db.execute(`
+            SELECT
 
-// Get all complaints
-router.get('/complaints', auth, async (req, res) => {
-    try {
+                COUNT(*) AS total_rooms,
+
+                COALESCE(
+                    SUM(
+                        CASE
+                            WHEN available_slots > 0
+                            THEN 1
+                            ELSE 0
+                        END
+                    ),
+                    0
+                ) AS available_rooms
+
+            FROM rooms
+        `);
+
+
         const [complaints] = await db.execute(`
-            SELECT c.*, s.name as student_name, s.roll_no 
-            FROM complaints c 
-            JOIN students s ON c.user_id = s.id
+            SELECT
+
+                COUNT(*) AS total_complaints,
+
+                COALESCE(
+                    SUM(
+                        CASE
+                            WHEN status = 'pending'
+                            THEN 1
+                            ELSE 0
+                        END
+                    ),
+                    0
+                ) AS pending_complaints
+
+            FROM complaints
         `);
-        res.json(complaints);
-    } catch (error) {
-        console.error('Error fetching complaints:', error);
-        res.status(500).json({ error: 'Failed to fetch complaints' });
-    }
-});
 
-// Update complaint status
-router.put('/update-complaint', auth, async (req, res) => {
-    try {
-        const { complaint_id, status } = req.body;
-        await db.execute('UPDATE complaints SET status = ? WHERE id = ?', [status, complaint_id]);
-        res.json({ message: 'Complaint status updated successfully' });
-    } catch (error) {
-        console.error('Error updating complaint status:', error);
-        res.status(500).json({ error: 'Failed to update complaint status' });
-    }
-});
 
-// Get all gate passes
-router.get('/gate-passes', auth, async (req, res) => {
-    try {
         const [gatePasses] = await db.execute(`
-            SELECT g.*, s.name as student_name, s.roll_no 
-            FROM gate_passes g 
-            JOIN students s ON g.user_id = s.id
+            SELECT
+
+                COUNT(*) AS total_requests,
+
+                COALESCE(
+                    SUM(
+                        CASE
+                            WHEN status = 'pending'
+                            THEN 1
+                            ELSE 0
+                        END
+                    ),
+                    0
+                ) AS pending_requests
+
+            FROM gate_passes
         `);
-        res.json(gatePasses);
+
+
+        res.json({
+
+            students: students[0],
+
+            rooms: rooms[0],
+
+            complaints: complaints[0],
+
+            gate_passes: gatePasses[0]
+
+        });
+
     } catch (error) {
-        console.error('Error fetching gate passes:', error);
-        res.status(500).json({ error: 'Failed to fetch gate passes' });
+
+        console.error(
+            'Teacher dashboard error:',
+            error
+        );
+
+        res.status(500).json({
+            error:
+                'Failed to fetch dashboard data'
+        });
     }
 });
 
-// Update gate pass status
-router.put('/update-gate-pass', auth, async (req, res) => {
+
+// ============================================================
+// GET ALL STUDENTS
+// ============================================================
+
+router.get('/students', auth, async (req, res) => {
+
     try {
-        const { pass_id, status } = req.body;
-        await db.execute('UPDATE gate_passes SET status = ? WHERE id = ?', [status, pass_id]);
-        res.json({ message: 'Gate pass status updated successfully' });
+
+        const [students] = await db.execute(`
+
+            SELECT
+
+                s.id AS student_id,
+
+                s.roll_no,
+                s.student_dept,
+                s.year,
+                s.section,
+
+                u.id AS user_id,
+                u.name,
+                u.email,
+                u.phone,
+
+
+                r.room_number,
+                r.block,
+                r.floor,
+                r.room_type,
+
+
+                ra.status AS room_status
+
+
+            FROM students s
+
+
+            JOIN users u
+                ON s.user_id = u.id
+
+
+            LEFT JOIN room_allocations ra
+                ON s.id = ra.student_id
+               AND ra.status = 'active'
+
+
+            LEFT JOIN rooms r
+                ON ra.room_id = r.id
+
+
+            ORDER BY
+                s.roll_no
+
+        `);
+
+
+        res.json(students);
+
     } catch (error) {
-        console.error('Error updating gate pass status:', error);
-        res.status(500).json({ error: 'Failed to update gate pass status' });
+
+        console.error(
+            'Error fetching students:',
+            error
+        );
+
+        res.status(500).json({
+            error:
+                'Failed to fetch students'
+        });
     }
 });
+
+
+// ============================================================
+// GET STUDENT BY ID
+// ============================================================
+
+router.get('/students/:id', auth, async (req, res) => {
+
+    try {
+
+        const [students] = await db.execute(`
+
+            SELECT
+
+                s.id AS student_id,
+
+                s.roll_no,
+                s.student_dept,
+                s.year,
+                s.section,
+
+                u.id AS user_id,
+                u.name,
+                u.email,
+                u.phone,
+
+                r.id AS room_id,
+                r.room_number,
+                r.block,
+                r.floor,
+                r.room_type,
+
+                ra.allocated_date,
+                ra.status AS room_status
+
+
+            FROM students s
+
+
+            JOIN users u
+                ON s.user_id = u.id
+
+
+            LEFT JOIN room_allocations ra
+                ON s.id = ra.student_id
+               AND ra.status = 'active'
+
+
+            LEFT JOIN rooms r
+                ON ra.room_id = r.id
+
+
+            WHERE s.id = ?
+
+            LIMIT 1
+
+        `, [req.params.id]);
+
+
+        if (students.length === 0) {
+
+            return res.status(404).json({
+                error:
+                    'Student not found'
+            });
+        }
+
+
+        res.json(students[0]);
+
+    } catch (error) {
+
+        console.error(
+            'Error fetching student:',
+            error
+        );
+
+        res.status(500).json({
+            error:
+                'Failed to fetch student'
+        });
+    }
+});
+
+
+// ============================================================
+// ATTENDANCE - GET
+// ============================================================
+
+router.get('/attendance', auth, async (req, res) => {
+
+    try {
+
+        const {
+            start_date,
+            end_date
+        } = req.query;
+
+
+        let query = `
+
+            SELECT
+
+                a.id,
+
+                a.student_id,
+
+                a.date,
+
+                a.status,
+
+                a.marked_at,
+
+                s.roll_no,
+
+                s.student_dept,
+                s.year,
+                s.section,
+
+                u.name AS student_name,
+
+
+                teacher_user.name
+                    AS marked_by_name
+
+
+            FROM attendance a
+
+
+            JOIN students s
+                ON a.student_id = s.id
+
+
+            JOIN users u
+                ON s.user_id = u.id
+
+
+            LEFT JOIN teachers t
+                ON a.marked_by = t.id
+
+
+            LEFT JOIN users teacher_user
+                ON t.user_id = teacher_user.id
+
+        `;
+
+
+        const params = [];
+
+
+        if (start_date && end_date) {
+
+            query += `
+                WHERE a.date
+                BETWEEN ? AND ?
+            `;
+
+            params.push(
+                start_date,
+                end_date
+            );
+        }
+
+
+        query += `
+
+            ORDER BY
+                a.date DESC,
+                s.roll_no
+
+        `;
+
+
+        const [attendance] =
+            await db.execute(
+                query,
+                params
+            );
+
+
+        res.json(attendance);
+
+    } catch (error) {
+
+        console.error(
+            'Error fetching attendance:',
+            error
+        );
+
+        res.status(500).json({
+            error:
+                'Failed to fetch attendance'
+        });
+    }
+});
+
+
+// ============================================================
+// MARK ATTENDANCE
+// ============================================================
+
+router.post('/attendance', auth, async (req, res) => {
+
+    const {
+        student_id,
+        date,
+        status
+    } = req.body;
+
+
+    if (
+        !student_id ||
+        !date ||
+        !status
+    ) {
+
+        return res.status(400).json({
+            error:
+                'student_id, date and status are required'
+        });
+    }
+
+
+    const validStatuses = [
+        'present',
+        'absent',
+        'leave'
+    ];
+
+
+    if (!validStatuses.includes(status)) {
+
+        return res.status(400).json({
+            error:
+                'Invalid attendance status'
+        });
+    }
+
+
+    try {
+
+        // Get teacher ID
+        const [teacherRows] =
+            await db.execute(`
+
+                SELECT id
+                FROM teachers
+                WHERE user_id = ?
+
+            `, [req.user.id]);
+
+
+        if (teacherRows.length === 0) {
+
+            return res.status(403).json({
+                error:
+                    'Teacher record not found'
+            });
+        }
+
+
+        const teacherId =
+            teacherRows[0].id;
+
+
+        // Check student
+        const [studentRows] =
+            await db.execute(`
+
+                SELECT id
+                FROM students
+                WHERE id = ?
+
+            `, [student_id]);
+
+
+        if (studentRows.length === 0) {
+
+            return res.status(404).json({
+                error:
+                    'Student not found'
+            });
+        }
+
+
+        /*
+            If attendance already exists
+            for this student and date,
+            update it.
+        */
+
+        const [existing] =
+            await db.execute(`
+
+                SELECT id
+                FROM attendance
+
+                WHERE student_id = ?
+                  AND date = ?
+
+                LIMIT 1
+
+            `, [
+                student_id,
+                date
+            ]);
+
+
+        if (existing.length > 0) {
+
+            await db.execute(`
+
+                UPDATE attendance
+
+                SET
+                    status = ?,
+                    marked_by = ?,
+                    marked_at = CURRENT_TIMESTAMP
+
+                WHERE id = ?
+
+            `, [
+                status,
+                teacherId,
+                existing[0].id
+            ]);
+
+
+            return res.json({
+                message:
+                    'Attendance updated successfully'
+            });
+        }
+
+
+        await db.execute(`
+
+            INSERT INTO attendance
+                (
+                    student_id,
+                    date,
+                    status,
+                    marked_by
+                )
+
+            VALUES (?, ?, ?, ?)
+
+        `, [
+            student_id,
+            date,
+            status,
+            teacherId
+        ]);
+
+
+        res.json({
+            message:
+                'Attendance marked successfully'
+        });
+
+    } catch (error) {
+
+        console.error(
+            'Error marking attendance:',
+            error
+        );
+
+        res.status(500).json({
+            error:
+                'Failed to mark attendance'
+        });
+    }
+});
+
+
+// ============================================================
+// COMPLAINTS
+// ============================================================
+
+router.get('/complaints', auth, async (req, res) => {
+
+    try {
+
+        const [complaints] = await db.execute(`
+
+            SELECT
+
+                c.id,
+
+                c.student_id,
+
+                c.subject,
+
+                c.description,
+
+                c.status,
+
+                c.created_at,
+
+                c.resolved_at,
+
+
+                s.roll_no,
+
+                s.student_dept,
+                s.year,
+                s.section,
+
+
+                u.name AS student_name,
+                u.email AS student_email,
+
+
+                resolved_user.name
+                    AS resolved_by_name,
+
+
+                r.room_number,
+                r.block
+
+
+            FROM complaints c
+
+
+            JOIN students s
+                ON c.student_id = s.id
+
+
+            JOIN users u
+                ON s.user_id = u.id
+
+
+            LEFT JOIN teachers rt
+                ON c.resolved_by = rt.id
+
+
+            LEFT JOIN users resolved_user
+                ON rt.user_id = resolved_user.id
+
+
+            LEFT JOIN room_allocations ra
+                ON s.id = ra.student_id
+               AND ra.status = 'active'
+
+
+            LEFT JOIN rooms r
+                ON ra.room_id = r.id
+
+
+            ORDER BY
+                c.created_at DESC
+
+        `);
+
+
+        res.json(complaints);
+
+    } catch (error) {
+
+        console.error(
+            'Error fetching complaints:',
+            error
+        );
+
+        res.status(500).json({
+            error:
+                'Failed to fetch complaints'
+        });
+    }
+});
+
+
+// ============================================================
+// UPDATE COMPLAINT STATUS
+// ============================================================
+
+router.put(
+    '/complaints/:id',
+    auth,
+    async (req, res) => {
+
+        const {
+            status
+        } = req.body;
+
+
+        const validStatuses = [
+            'pending',
+            'in_progress',
+            'resolved',
+            'rejected'
+        ];
+
+
+        if (!validStatuses.includes(status)) {
+
+            return res.status(400).json({
+                error:
+                    'Invalid complaint status'
+            });
+        }
+
+
+        try {
+
+            const [teacherRows] =
+                await db.execute(`
+
+                    SELECT id
+                    FROM teachers
+                    WHERE user_id = ?
+
+                `, [req.user.id]);
+
+
+            if (teacherRows.length === 0) {
+
+                return res.status(403).json({
+                    error:
+                        'Teacher record not found'
+                });
+            }
+
+
+            const teacherId =
+                teacherRows[0].id;
+
+
+            let query;
+            let params;
+
+
+            if (status === 'resolved') {
+
+                query = `
+
+                    UPDATE complaints
+
+                    SET
+                        status = ?,
+                        resolved_by = ?,
+                        resolved_at =
+                            CURRENT_TIMESTAMP
+
+                    WHERE id = ?
+
+                `;
+
+                params = [
+                    status,
+                    teacherId,
+                    req.params.id
+                ];
+
+            } else {
+
+                query = `
+
+                    UPDATE complaints
+
+                    SET
+                        status = ?
+
+                    WHERE id = ?
+
+                `;
+
+                params = [
+                    status,
+                    req.params.id
+                ];
+            }
+
+
+            const [result] =
+                await db.execute(
+                    query,
+                    params
+                );
+
+
+            if (result.affectedRows === 0) {
+
+                return res.status(404).json({
+                    error:
+                        'Complaint not found'
+                });
+            }
+
+
+            res.json({
+                message:
+                    'Complaint status updated successfully'
+            });
+
+        } catch (error) {
+
+            console.error(
+                'Error updating complaint:',
+                error
+            );
+
+            res.status(500).json({
+                error:
+                    'Failed to update complaint'
+            });
+        }
+    }
+);
+
+
+// ============================================================
+// GATE PASSES
+// ============================================================
+
+router.get('/gate-passes', auth, async (req, res) => {
+
+    try {
+
+        const [passes] = await db.execute(`
+
+            SELECT
+
+                g.id,
+
+                g.user_id,
+
+                g.reason,
+
+                g.leave_date,
+
+                g.return_date,
+
+                g.status,
+
+                g.approved_by,
+
+                g.approved_at,
+
+                g.created_at,
+
+
+                u.name AS student_name,
+
+                u.email AS student_email,
+
+                s.roll_no,
+
+
+                approver.name
+                    AS approved_by_name
+
+
+            FROM gate_passes g
+
+
+            JOIN users u
+                ON g.user_id = u.id
+
+
+            JOIN students s
+                ON g.user_id = s.user_id
+
+
+            LEFT JOIN teachers t
+                ON g.approved_by = t.id
+
+
+            LEFT JOIN users approver
+                ON t.user_id = approver.id
+
+
+            ORDER BY
+                g.created_at DESC
+
+        `);
+
+
+        res.json(passes);
+
+    } catch (error) {
+
+        console.error(
+            'Error fetching gate passes:',
+            error
+        );
+
+        res.status(500).json({
+            error:
+                'Failed to fetch gate passes'
+        });
+    }
+});
+
+
+// ============================================================
+// UPDATE GATE PASS
+// ============================================================
+
+router.put(
+    '/gate-passes/:id',
+    auth,
+    async (req, res) => {
+
+        const {
+            status
+        } = req.body;
+
+
+        const validStatuses = [
+            'pending',
+            'approved',
+            'rejected'
+        ];
+
+
+        if (!validStatuses.includes(status)) {
+
+            return res.status(400).json({
+                error:
+                    'Invalid gate pass status'
+            });
+        }
+
+
+        try {
+
+            const [teacherRows] =
+                await db.execute(`
+
+                    SELECT id
+                    FROM teachers
+                    WHERE user_id = ?
+
+                `, [req.user.id]);
+
+
+            if (teacherRows.length === 0) {
+
+                return res.status(403).json({
+                    error:
+                        'Teacher record not found'
+                });
+            }
+
+
+            const teacherId =
+                teacherRows[0].id;
+
+
+            let query;
+            let params;
+
+
+            if (status === 'approved') {
+
+                query = `
+
+                    UPDATE gate_passes
+
+                    SET
+
+                        status = ?,
+
+                        approved_by = ?,
+
+                        approved_at =
+                            CURRENT_TIMESTAMP
+
+                    WHERE id = ?
+
+                `;
+
+                params = [
+                    status,
+                    teacherId,
+                    req.params.id
+                ];
+
+            } else {
+
+                query = `
+
+                    UPDATE gate_passes
+
+                    SET
+                        status = ?
+
+                    WHERE id = ?
+
+                `;
+
+                params = [
+                    status,
+                    req.params.id
+                ];
+            }
+
+
+            const [result] =
+                await db.execute(
+                    query,
+                    params
+                );
+
+
+            if (result.affectedRows === 0) {
+
+                return res.status(404).json({
+                    error:
+                        'Gate pass not found'
+                });
+            }
+
+
+            res.json({
+                message:
+                    'Gate pass status updated successfully'
+            });
+
+        } catch (error) {
+
+            console.error(
+                'Error updating gate pass:',
+                error
+            );
+
+            res.status(500).json({
+                error:
+                    'Failed to update gate pass'
+            });
+        }
+    }
+);
+
+
+// ============================================================
+// ROOM ALLOCATIONS
+// ============================================================
+
+router.get(
+    '/room-allocations/:roomId',
+    auth,
+    async (req, res) => {
+
+        try {
+
+            const [rows] =
+                await db.execute(`
+
+                    SELECT
+
+                        ra.id AS allocation_id,
+
+                        ra.student_id,
+
+                        ra.room_id,
+
+                        ra.allocated_date,
+
+                        ra.status,
+
+
+                        s.roll_no,
+
+                        s.student_dept,
+
+                        s.year,
+
+                        s.section,
+
+
+                        u.name,
+                        u.email,
+                        u.phone
+
+                    FROM room_allocations ra
+
+
+                    JOIN students s
+                        ON ra.student_id = s.id
+
+
+                    JOIN users u
+                        ON s.user_id = u.id
+
+
+                    WHERE ra.room_id = ?
+
+                      AND ra.status = 'active'
+
+
+                    ORDER BY
+                        u.name
+
+                `, [
+                    req.params.roomId
+                ]);
+
+
+            res.json(rows);
+
+        } catch (error) {
+
+            console.error(
+                'Error fetching room allocations:',
+                error
+            );
+
+            res.status(500).json({
+                error:
+                    'Failed to fetch room allocations'
+            });
+        }
+    }
+);
+
+
+// ============================================================
+// FEE REPORT
+// ============================================================
+
+router.get('/fee-report', auth, async (req, res) => {
+
+    try {
+
+        const [fees] =
+            await db.execute(`
+
+                SELECT
+
+                    s.id AS student_id,
+
+                    s.roll_no,
+
+                    u.name AS student_name,
+
+                    u.email,
+
+
+                    ft.name AS fee_type,
+
+                    sfa.amount AS assigned_amount,
+
+                    sfa.due_date,
+
+                    sfa.status AS assignment_status,
+
+
+                    COALESCE(
+
+                        (
+                            SELECT
+                                SUM(
+                                    hf.amount_paid
+                                )
+
+                            FROM hostel_fees hf
+
+                            WHERE
+                                hf.assignment_id =
+                                sfa.id
+
+                              AND hf.status =
+                                'completed'
+
+                        ),
+
+                        0
+
+                    ) AS total_paid
+
+
+                FROM student_fee_assignments sfa
+
+
+                JOIN students s
+                    ON sfa.student_id = s.id
+
+
+                JOIN users u
+                    ON s.user_id = u.id
+
+
+                JOIN fee_types ft
+                    ON sfa.fee_type_id = ft.id
+
+
+                ORDER BY
+                    s.roll_no,
+                    sfa.due_date
+
+            `);
+
+
+        const formatted =
+            fees.map(fee => ({
+
+                ...fee,
+
+                assigned_amount:
+                    Number(
+                        fee.assigned_amount
+                    ),
+
+                total_paid:
+                    Number(
+                        fee.total_paid
+                    ),
+
+                pending:
+                    Math.max(
+
+                        0,
+
+                        Number(
+                            fee.assigned_amount
+                        )
+                        -
+                        Number(
+                            fee.total_paid
+                        )
+
+                    )
+
+            }));
+
+
+        res.json(formatted);
+
+    } catch (error) {
+
+        console.error(
+            'Error fetching fee report:',
+            error
+        );
+
+        res.status(500).json({
+            error:
+                'Failed to fetch fee report'
+        });
+    }
+});
+
+
+// ============================================================
+// CREATE NOTIFICATION
+// ============================================================
+
+router.post('/notifications', auth, async (req, res) => {
+
+    const {
+        title,
+        content,
+        type
+    } = req.body;
+
+
+    if (!title || !content || !type) {
+
+        return res.status(400).json({
+            error:
+                'title, content and type are required'
+        });
+    }
+
+
+    const validTypes = [
+        'info',
+        'warning',
+        'important'
+    ];
+
+
+    if (!validTypes.includes(type)) {
+
+        return res.status(400).json({
+            error:
+                'Invalid notification type'
+        });
+    }
+
+
+    try {
+
+        await db.execute(`
+
+            INSERT INTO notifications
+                (
+                    title,
+                    content,
+                    type,
+                    created_by
+                )
+
+            VALUES (?, ?, ?, ?)
+
+        `, [
+            title,
+            content,
+            type,
+            req.user.id
+        ]);
+
+
+        res.json({
+            message:
+                'Notification created successfully'
+        });
+
+    } catch (error) {
+
+        console.error(
+            'Error creating notification:',
+            error
+        );
+
+        res.status(500).json({
+            error:
+                'Failed to create notification'
+        });
+    }
+});
+
 
 module.exports = router;
