@@ -1027,63 +1027,414 @@ window.updateGatePassStatus = async function(passId, status) {
     }
 };
 
-    // Fee Verification
-    window.verifyFees = async function() {
-        try {
-            const response = await fetchWithAuth('/teacher/fees');
-            const fees = response?.fees || [];
-            
-            const contentArea = document.querySelector('.content-area');
-            if (!contentArea) return;
-            
-            contentArea.innerHTML = `
-                <div class="fees-section">
-                    <h2>Fee Verification</h2>
+   // ============================================================
+// FEE MANAGEMENT
+// ============================================================
+window.verifyFees = async function() {
+    try {
+        const [studentsResponse, feeTypesResponse, feesResponse] =
+            await Promise.all([
+                fetchWithAuth('/teacher/students'),
+                fetchWithAuth('/teacher/fee-types'),
+                fetchWithAuth('/teacher/fee-report')
+            ]);
+
+        const students = Array.isArray(studentsResponse)
+    ? studentsResponse
+    : (studentsResponse?.students || []);
+
+        const feeTypes = Array.isArray(feeTypesResponse)
+            ? feeTypesResponse
+            : [];
+
+        const fees = Array.isArray(feesResponse)
+            ? feesResponse
+            : [];
+
+        const contentArea = document.querySelector('.content-area');
+
+        if (!contentArea) return;
+
+        contentArea.innerHTML = `
+            <div class="fees-section">
+
+                <h2>Fee Management</h2>
+
+                <!-- ASSIGN FEE -->
+                <div class="fee-assignment-card">
+
+                    <h3>
+                        <i class="fas fa-file-invoice-dollar"></i>
+                        Assign Fee to Student
+                    </h3>
+
+                    <form id="assignFeeForm">
+
+                        <div class="form-row">
+
+                            <div class="form-group">
+                                <label for="feeStudent">
+                                    Student
+                                </label>
+
+                                <select
+                                    id="feeStudent"
+                                    required
+                                >
+                                    <option value="">
+                                        Select Student
+                                    </option>
+
+                                    ${students.map(student => `
+    <option value="${student.student_id}">
+        ${student.name || 'Unknown Student'}
+        ${student.roll_no
+            ? ` - ${student.roll_no}`
+            : ''}
+    </option>
+`).join('')}
+
+                                </select>
+                            </div>
+
+
+                            <div class="form-group">
+                                <label for="feeType">
+                                    Fee Type
+                                </label>
+
+                                <select
+                                    id="feeType"
+                                    required
+                                >
+
+                                    <option value="">
+                                        Select Fee Type
+                                    </option>
+
+                                    ${feeTypes.map(feeType => `
+                                        <option
+                                            value="${feeType.id}"
+                                            data-amount="${feeType.amount}"
+                                        >
+                                            ${feeType.name}
+                                            - ₹${Number(
+                                                feeType.amount
+                                            ).toLocaleString()}
+                                        </option>
+                                    `).join('')}
+
+                                </select>
+                            </div>
+
+                        </div>
+
+
+                        <div class="form-row">
+
+                            <div class="form-group">
+                                <label for="feeAmount">
+                                    Amount
+                                </label>
+
+                                <input
+                                    type="number"
+                                    id="feeAmount"
+                                    min="0"
+                                    step="0.01"
+                                    placeholder="Enter amount"
+                                    required
+                                >
+                            </div>
+
+
+                            <div class="form-group">
+                                <label for="feeDueDate">
+                                    Due Date
+                                </label>
+
+                                <input
+                                    type="date"
+                                    id="feeDueDate"
+                                    required
+                                >
+                            </div>
+
+                        </div>
+
+
+                        <button
+                            type="submit"
+                            class="primary-btn"
+                        >
+                            <i class="fas fa-plus-circle"></i>
+                            Assign Fee
+                        </button>
+
+                    </form>
+
+                </div>
+
+
+                <!-- ASSIGNED FEES -->
+                <div class="fees-list-card">
+
+                    <h3>
+                        <i class="fas fa-list"></i>
+                        Assigned Fees
+                    </h3>
+
                     <div class="fees-table-container">
+
                         <table class="fees-table">
+
                             <thead>
                                 <tr>
                                     <th>Student</th>
                                     <th>Roll No</th>
                                     <th>Fee Type</th>
                                     <th>Amount</th>
+                                    <th>Paid</th>
+                                    <th>Pending</th>
                                     <th>Due Date</th>
                                     <th>Status</th>
-                                    <th>Actions</th>
                                 </tr>
                             </thead>
+
                             <tbody>
-                                ${Array.isArray(fees) ? fees.map(fee => `
-                                    <tr>
-                                        <td>${fee.student_name}</td>
-                                        <td>${fee.roll_no}</td>
-                                        <td>${fee.fee_name}</td>
-                                        <td>₹${fee.amount.toLocaleString()}</td>
-                                        <td>${new Date(fee.due_date).toLocaleDateString()}</td>
-                                        <td>
-                                            <span class="status ${fee.status.toLowerCase()}">
-                                                ${fee.status}
-                                            </span>
-                                        </td>
-                                        <td>
-                                            ${fee.status === 'pending' ? `
-                                                <button onclick="verifyFeePayment(${fee.assignment_id})" class="verify-btn">
-                                                    <i class="fas fa-check"></i> Verify
-                                                </button>
-                                            ` : '-'}
-                                        </td>
-                                    </tr>
-                                `).join('') : '<tr><td colspan="7">No fees found</td></tr>'}
+
+                                ${
+                                    fees.length > 0
+                                    ? fees.map(fee => `
+                                        <tr>
+
+                                            <td>
+                                                ${fee.student_name || '-'}
+                                            </td>
+
+                                            <td>
+                                                ${fee.roll_no || '-'}
+                                            </td>
+
+                                            <td>
+                                                ${fee.fee_type || '-'}
+                                            </td>
+
+                                            <td>
+                                                ₹${Number(
+                                                    fee.assigned_amount || 0
+                                                ).toLocaleString()}
+                                            </td>
+
+                                            <td>
+                                                ₹${Number(
+                                                    fee.total_paid || 0
+                                                ).toLocaleString()}
+                                            </td>
+
+                                            <td>
+                                                ₹${Number(
+                                                    fee.pending || 0
+                                                ).toLocaleString()}
+                                            </td>
+
+                                            <td>
+                                                ${
+                                                    fee.due_date
+                                                    ? new Date(
+                                                        fee.due_date
+                                                    ).toLocaleDateString()
+                                                    : '-'
+                                                }
+                                            </td>
+
+                                            <td>
+                                                <span class="status ${
+                                                    fee.assignment_status || 'pending'
+                                                }">
+                                                    ${
+                                                        fee.assignment_status || 'pending'
+                                                    }
+                                                </span>
+                                            </td>
+
+                                        </tr>
+                                    `).join('')
+
+                                    : `
+                                        <tr>
+                                            <td
+                                                colspan="8"
+                                                style="text-align:center;"
+                                            >
+                                                No fees assigned yet
+                                            </td>
+                                        </tr>
+                                    `
+                                }
+
                             </tbody>
+
                         </table>
+
                     </div>
+
                 </div>
-            `;
-        } catch (error) {
-            console.error('Error fetching fees:', error);
-            showError('Failed to load fee data. Please try again.');
+
+            </div>
+        `;
+
+
+        // ========================================================
+        // AUTO-FILL AMOUNT WHEN FEE TYPE IS SELECTED
+        // ========================================================
+
+        const feeTypeSelect =
+            document.getElementById('feeType');
+
+        const amountInput =
+            document.getElementById('feeAmount');
+
+        if (feeTypeSelect && amountInput) {
+
+            feeTypeSelect.addEventListener(
+                'change',
+                function() {
+
+                    const selectedOption =
+                        this.options[this.selectedIndex];
+
+                    const amount =
+                        selectedOption.dataset.amount;
+
+                    if (amount) {
+                        amountInput.value = amount;
+                    }
+
+                }
+            );
         }
-    };
+
+
+        // ========================================================
+        // ASSIGN FEE FORM SUBMISSION
+        // ========================================================
+
+        const form =
+            document.getElementById('assignFeeForm');
+
+        if (form) {
+
+            form.addEventListener(
+                'submit',
+                async function(event) {
+
+                    event.preventDefault();
+
+                    const studentId =
+                        document.getElementById('feeStudent').value;
+
+                    const feeTypeId =
+                        document.getElementById('feeType').value;
+
+                    const amount =
+                        document.getElementById('feeAmount').value;
+
+                    const dueDate =
+                        document.getElementById('feeDueDate').value;
+
+
+                    if (
+                        !studentId ||
+                        !feeTypeId ||
+                        !amount ||
+                        !dueDate
+                    ) {
+
+                        showError(
+                            'Please fill all fee details.'
+                        );
+
+                        return;
+                    }
+
+
+                    try {
+
+                        const response =
+                            await fetchWithAuth(
+                                '/teacher/assign-fee',
+                                {
+                                    method: 'POST',
+
+                                    headers: {
+                                        'Content-Type':
+                                            'application/json'
+                                    },
+
+                                    body: JSON.stringify({
+                                        student_id:
+                                            Number(studentId),
+
+                                        fee_type_id:
+                                            Number(feeTypeId),
+
+                                        amount:
+                                            Number(amount),
+
+                                        due_date:
+                                            dueDate
+                                    })
+                                }
+                            );
+
+
+                        if (response?.success) {
+
+                            showSuccess(
+                                'Fee assigned successfully'
+                            );
+
+                            // Reload fee page
+                            verifyFees();
+
+                        } else {
+
+                            showError(
+                                response?.error ||
+                                response?.message ||
+                                'Failed to assign fee'
+                            );
+
+                        }
+
+                    } catch (error) {
+
+                        console.error(
+                            'Error assigning fee:',
+                            error
+                        );
+
+                        showError(
+                            'Failed to assign fee. Please try again.'
+                        );
+                    }
+                }
+            );
+        }
+
+    } catch (error) {
+
+        console.error(
+            'Error loading fee management:',
+            error
+        );
+
+        showError(
+            'Failed to load fee management. Please try again.'
+        );
+    }
+};
 
     // Verify fee payment
     window.verifyFeePayment = async function(assignmentId) {
@@ -1114,7 +1465,10 @@ window.updateGatePassStatus = async function(passId, status) {
     window.viewStudentInfo = async function() {
         try {
             const response = await fetchWithAuth('/teacher/students');
-            const students = response?.students || [];
+
+const students = Array.isArray(response)
+    ? response
+    : (response?.students || []);
             
             const contentArea = document.querySelector('.content-area');
             if (!contentArea) return;
@@ -1148,7 +1502,7 @@ window.updateGatePassStatus = async function(passId, status) {
                                         <td>${student.section}</td>
                                         <td>${student.room_number || 'Not Allocated'}</td>
                                         <td>
-                                            <button onclick="viewStudentDetails(${student.id})" class="view-btn">
+                                            <button onclick="viewStudentDetails(${student.student_id})" class="view-btn">
                                                 <i class="fas fa-eye"></i> View Details
                                             </button>
                                         </td>
@@ -1192,71 +1546,171 @@ window.updateGatePassStatus = async function(passId, status) {
             }
         }
     };
+// View student details
+window.viewStudentDetails = async function(studentId) {
+    try {
+        const response = await fetchWithAuth('/teacher/students');
 
-    // View student details
-    window.viewStudentDetails = async function(studentId) {
-        try {
-            const response = await fetchWithAuth(`/teacher/student/${studentId}`);
-            const student = response?.student;
-            
-            const contentArea = document.querySelector('.content-area');
-            if (!contentArea) return;
-            
-            contentArea.innerHTML = `
-                <div class="student-details-section">
-                    <h2>Student Details</h2>
-                    <div class="student-profile">
-                        <div class="profile-header">
-                            <div class="profile-image">
-                                <i class="fas fa-user"></i>
-                            </div>
-                            <div class="profile-info">
-                                <h3>${student?.name || 'Student'}</h3>
-                                <p>${student?.student_dept || 'Department'} - ${student?.year || 'Year'} Year</p>
-                                <p>Roll No: ${student?.roll_no || 'N/A'}</p>
-                            </div>
-                        </div>
-                        <div class="profile-details">
-                            <div class="detail-row">
-                                <span>Email</span>
-                                <span>${student?.email || 'N/A'}</span>
-                            </div>
-                            <div class="detail-row">
-                                <span>Phone</span>
-                                <span>${student?.phone || 'N/A'}</span>
-                            </div>
-                            <div class="detail-row">
-                                <span>Department</span>
-                                <span>${student?.student_dept || 'N/A'}</span>
-                            </div>
-                            <div class="detail-row">
-                                <span>Year</span>
-                                <span>${student?.year || 'N/A'}</span>
-                            </div>
-                            <div class="detail-row">
-                                <span>Section</span>
-                                <span>${student?.section || 'N/A'}</span>
-                            </div>
-                            <div class="detail-row">
-                                <span>Roll Number</span>
-                                <span>${student?.roll_no || 'N/A'}</span>
-                            </div>
-                            <div class="detail-row">
-                                <span>Room</span>
-                                <span>${student?.room_number || 'Not Allocated'}</span>
-                            </div>
-                        </div>
-                    </div>
-                    <button onclick="viewStudentInfo()" class="back-btn">
-                        <i class="fas fa-arrow-left"></i> Back to Students
-                    </button>
-                </div>
-            `;
-        } catch (error) {
-            console.error('Error fetching student details:', error);
-            showError('Failed to load student details. Please try again.');
+        const students = Array.isArray(response)
+            ? response
+            : (response?.students || []);
+
+        const student = students.find(
+            s => Number(s.student_id) === Number(studentId)
+        );
+
+        if (!student) {
+            showError('Student details not found.');
+            return;
         }
-    };
+
+        const contentArea =
+            document.querySelector('.content-area');
+
+        if (!contentArea) return;
+
+        contentArea.innerHTML = `
+            <div class="student-details-section">
+
+                <h2>Student Details</h2>
+
+                <div class="student-profile">
+
+                    <div class="profile-header">
+
+                        <div class="profile-image">
+                            <i class="fas fa-user"></i>
+                        </div>
+
+                        <div class="profile-info">
+
+                            <h3>
+                                ${student.name || 'Student'}
+                            </h3>
+
+                            <p>
+                                ${student.student_dept || 'Department'}
+                                -
+                                ${student.year || 'Year'} Year
+                            </p>
+
+                            <p>
+                                Roll No:
+                                ${student.roll_no || 'N/A'}
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="profile-details">
+
+                        <div class="detail-row">
+                            <span>Email</span>
+                            <span>
+                                ${student.email || 'N/A'}
+                            </span>
+                        </div>
+
+                        <div class="detail-row">
+                            <span>Phone</span>
+                            <span>
+                                ${student.phone || 'N/A'}
+                            </span>
+                        </div>
+
+                        <div class="detail-row">
+                            <span>Department</span>
+                            <span>
+                                ${student.student_dept || 'N/A'}
+                            </span>
+                        </div>
+
+                        <div class="detail-row">
+                            <span>Year</span>
+                            <span>
+                                ${student.year || 'N/A'}
+                            </span>
+                        </div>
+
+                        <div class="detail-row">
+                            <span>Section</span>
+                            <span>
+                                ${student.section || 'N/A'}
+                            </span>
+                        </div>
+
+                        <div class="detail-row">
+                            <span>Roll Number</span>
+                            <span>
+                                ${student.roll_no || 'N/A'}
+                            </span>
+                        </div>
+
+                        <div class="detail-row">
+                            <span>Room</span>
+                            <span>
+                                ${student.room_number || 'Not Allocated'}
+                            </span>
+                        </div>
+
+                        <div class="detail-row">
+                            <span>Block</span>
+                            <span>
+                                ${student.block || 'N/A'}
+                            </span>
+                        </div>
+
+                        <div class="detail-row">
+                            <span>Floor</span>
+                            <span>
+                                ${student.floor || 'N/A'}
+                            </span>
+                        </div>
+
+                        <div class="detail-row">
+                            <span>Room Type</span>
+                            <span>
+                                ${student.room_type || 'N/A'}
+                            </span>
+                        </div>
+
+                        <div class="detail-row">
+                            <span>Room Status</span>
+                            <span>
+                                ${student.room_status || 'N/A'}
+                            </span>
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <button
+                    onclick="viewStudentInfo()"
+                    class="back-btn"
+                >
+                    <i class="fas fa-arrow-left"></i>
+                    Back to Students
+                </button>
+
+            </div>
+        `;
+
+    } catch (error) {
+
+        console.error(
+            'Error fetching student details:',
+            error
+        );
+
+        showError(
+            'Failed to load student details. Please try again.'
+        );
+    }
+};
 
     // Reports Generation
     window.generateReports = async function() {

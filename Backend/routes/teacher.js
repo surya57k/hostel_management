@@ -1343,5 +1343,135 @@ router.post('/notifications', auth, async (req, res) => {
     }
 });
 
+// ============================================================
+// FEE TYPES - GET AVAILABLE FEE TYPES
+// ============================================================
+router.get('/fee-types', auth, async (req, res) => {
+    try {
+        const [rows] = await db.execute(`
+            SELECT
+                id,
+                name,
+                amount,
+                description,
+                academic_year,
+                semester
+            FROM fee_types
+            ORDER BY name
+        `);
+
+        res.json(rows);
+    } catch (error) {
+        console.error('Error fetching fee types:', error);
+
+        res.status(500).json({
+            error: 'Failed to fetch fee types'
+        });
+    }
+});
+
+
+// ============================================================
+// ASSIGN FEE TO STUDENT
+// ============================================================
+router.post('/assign-fee', auth, async (req, res) => {
+    try {
+        const {
+            student_id,
+            fee_type_id,
+            amount,
+            due_date
+        } = req.body;
+
+        // Validate required fields
+        if (
+            !student_id ||
+            !fee_type_id ||
+            !amount ||
+            !due_date
+        ) {
+            return res.status(400).json({
+                error:
+                    'Student, fee type, amount and due date are required'
+            });
+        }
+
+        // Check student exists
+        const [students] = await db.execute(`
+            SELECT id
+            FROM students
+            WHERE id = ?
+        `, [student_id]);
+
+        if (students.length === 0) {
+            return res.status(404).json({
+                error: 'Student not found'
+            });
+        }
+
+        // Check fee type exists
+        const [feeTypes] = await db.execute(`
+            SELECT id
+            FROM fee_types
+            WHERE id = ?
+        `, [fee_type_id]);
+
+        if (feeTypes.length === 0) {
+            return res.status(404).json({
+                error: 'Fee type not found'
+            });
+        }
+
+        // Prevent duplicate pending/partial assignment
+        const [existing] = await db.execute(`
+            SELECT id
+            FROM student_fee_assignments
+            WHERE student_id = ?
+              AND fee_type_id = ?
+              AND status IN ('pending', 'partial')
+        `, [
+            student_id,
+            fee_type_id
+        ]);
+
+        if (existing.length > 0) {
+            return res.status(409).json({
+                error:
+                    'This fee is already assigned to this student'
+            });
+        }
+
+        // Create assignment
+        const [result] = await db.execute(`
+            INSERT INTO student_fee_assignments
+                (
+                    student_id,
+                    fee_type_id,
+                    amount,
+                    due_date,
+                    status
+                )
+            VALUES (?, ?, ?, ?, 'pending')
+        `, [
+            student_id,
+            fee_type_id,
+            amount,
+            due_date
+        ]);
+
+        res.status(201).json({
+            success: true,
+            message: 'Fee assigned successfully',
+            assignment_id: result.insertId
+        });
+
+    } catch (error) {
+        console.error('Error assigning fee:', error);
+
+        res.status(500).json({
+            error: 'Failed to assign fee'
+        });
+    }
+});
 
 module.exports = router;
